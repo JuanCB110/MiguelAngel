@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../css/principal.css">
+        <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+        <title>Horario Administrador</title>
+    </head>
+    <body id="body">
+        <div class="l-navbar" id="navbar">
+            <nav class="nav">
+                <div>
+                    <a href="#" class="nav__logo">
+                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <span class="nav__logo-text">Admin</span>
+                    </a>
+    
+                    <div class="nav__toggle" id="nav-toggle">
+                        <i class='bx bx-chevron-right'></i>
+                    </div>
+    
+                    <ul class="nav__list">
+                        <a href="menuAdmin.html" class="nav__link">
+                            <i class='bx bx-grid-alt nav__icon'></i>
+                            <span class="nav__text">Menu</span>
+                        </a>
+                        <a href="horarioAdmin.html" class="nav__link active">
+                            <i class='bx bx-calendar-star nav__icon'></i>
+                            <span class="nav__text">Horario</span>
+                        </a>
+                        <a href="gruposAdmin.html" class="nav__link">
+                            <i class='bx bx-buildings nav__icon'></i>
+                            <span class="nav__text">Grupos</span>
+                        </a>
+                        <a href="usuariosAdmin.html" class="nav__link">
+                            <i class='bx bx-user nav__icon' ></i>
+                            <span class="nav__text">Usuarios</span>
+                        </a>
+                        <a href="materiasAdmin.html" class="nav__link">
+                            <i class='bx bx-book-bookmark nav__icon' ></i>
+                            <span class="nav__text">Materia</span>
+                        </a>
+                        
+                        <a href="temariosAdmin.html" class="nav__link">
+                            <i class='bx bx-bookmark nav__icon'></i>
+                            <span class="nav__text">Temario</span>
+                        </a>              
+                    </ul>
+                </div>
+                <a href="../index.html" class="nav__link">           
+                    <i class='bx bx-log-out-circle nav__icon'></i>
+                    <span class="nav__text">Salir</span>
+                </a>
+            </nav>
+        </div>
+
+        <section>
+            <div class="barra-opciones" style="width: 40%;">
+                <a href="#" class="activo">Ver Grupos</a>
+                <a href="horarioVerMaestros.html">Ver Maestros</a>
+                <a href="horarioAdminAñadir.html">Agregar Grupo</a>
+                <a href="horarioAdminAñadirMaestro.html">Agregar Maestro</a>
+            </div>
+
+            <div class="menu-desplegable">
+                <h1>Seleccione el horario del grupo que quiera ver</h1>
+                <select name="Grupo" id="">
+                    <option value="401">401</option>
+                </select>
+            </div>
+            <div class="horario-ver">
+                <table>
+                    <tr>
+                        <th colspan="3">GRUPO X - IS - EDIFICIO BX ::::::: AULA X</th>
+                    </tr>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Materias</th>
+                        <th>Maestro</th>
+                    </tr>
+                    <tr>
+                        <td>08:00 - 09:00</td>
+                        <td>Materia 1</td>
+                        <td>Profesor 1</td>
+                    </tr>
+                    <tr>
+                        <td>09:00 - 10:00</td>
+                        <td>Materia 2</td>
+                        <td>Profesor 2</td>
+                    </tr>
+                    <tr>
+                        <td>10:00 - 11:00</td>
+                        <td>Materia 3</td>
+                        <td>Profesor 3</td>
+                    </tr>
+                    <!-- Agregar más filas según sea necesario -->
+                </table>
+            </div><br>
+            <div class="form-usuarios" style="background: none; align-items: center;">
+                <button class="boton-global-rojo" style="width: 60%;">Elimnar horario</button>
+            </div>
+            <br><br>
+            <form class="form-usuarios">
+                <h1>Checador de asistencia de los maestros</h1>
+                <input type="date">
+                <h1>Seleccione la hora</h1>
+                <select name="" id="">
+                    <option value="">13:00 - 14:00</option>
+                </select>
+                <h1>el maestro asistio?</h1>
+                <div class="check">
+                    <label for="">Marque la casilla si el maestro asistio</label>
+                    <input type="checkbox">
+                </div>
+                    <button class="boton-global">Guardar</button>
+            </form>
+            <br>
+        </section>
+    </body>
+
+<script src="../js/sidebar.js"></script>
+<script src="../js/barraOpciones.js"></script>
+<script type="module">
+    import { getHorarios, getHorarioPorGrupo, eliminarHorario } from '../bd/horarios.js';
+    import { getGrupos } from '../bd/grupos.js';
+    import { checkAdminAuth } from '../bd/auth.js';
+    
+    // Verificar autenticación
+    checkAdminAuth();
+    
+    // Cargar grupos en el select
+    async function cargarGrupos() {
+        try {
+            const grupos = await getGrupos();
+            const selectGrupo = document.querySelector('select[name="Grupo"]');
+            selectGrupo.innerHTML = '';
+            
+            grupos.forEach(grupo => {
+                const option = document.createElement('option');
+                option.value = grupo.id;
+                option.textContent = grupo.numeroGrupo || grupo.nombre;
+                selectGrupo.appendChild(option);
+            });
+            
+            // Cargar horario del primer grupo
+            if (grupos.length > 0) {
+                cargarHorario(grupos[0].id);
+            }
+        } catch (error) {
+            console.error('Error al cargar grupos:', error);
+        }
+    }
+    
+    // Cargar horario de un grupo
+    async function cargarHorario(grupoId) {
+        try {
+            const horarios = await getHorarioPorGrupo(grupoId);
+            console.log("Horarios recuperados (OBJETO COMPLETO):", JSON.stringify(horarios, null, 2)); // Log completo
+            
+            const tablaHorario = document.querySelector('.horario-ver table');
+            
+            // Actualizar encabezado con info del grupo y aula
+            if (horarios && horarios.length > 0) {
+                const infoGrupo = horarios[0];
+                const encabezado = tablaHorario.querySelector('tr:first-child th');
+                if (encabezado) {
+                    encabezado.textContent = `GRUPO ${infoGrupo.grupo || 'X'} - IS - EDIFICIO ${infoGrupo.edificio || 'BX'} ::::::: AULA ${infoGrupo.aula || 'X'}`;
+                }
+            }
+            
+            // Limpiar tabla excepto encabezados - Corregido para evitar errores
+            const tbody = tablaHorario.querySelector('tbody') || tablaHorario;
+            const filas = Array.from(tbody.querySelectorAll('tr')); // Convertir a array para manipulación segura
+            
+            // Mantener los dos primeros filas (encabezados) y eliminar el resto
+            for (let i = 0; i < filas.length; i++) {
+                if (i >= 2) { // Preservar las primeras dos filas
+                    if (filas[i].parentNode === tbody) { // Verificar que el nodo padre sea correcto
+                        tbody.removeChild(filas[i]);
+                    }
+                }
+            }
+            
+            // Alternativa: eliminar todo y reconstruir
+            if (horarios && horarios.length > 0) {
+                // Agregar horarios a la tabla
+                horarios.forEach(horario => {
+                    // Mostrar el objeto horario completo para diagnóstico
+                    console.log("Horario individual (todas las propiedades):", horario);
+                    
+                    // Verificar y asignar el nombre del maestro con fallbacks
+                    let nombreMaestro = "Sin asignar";
+                    // Intentar todas las posibles propiedades donde podría estar el nombre
+                    if (horario.nombreMaestro) {
+                        nombreMaestro = horario.nombreMaestro;
+                        console.log("Usando propiedad nombreMaestro:", nombreMaestro);
+                    } else if (horario.maestro && horario.maestro.nombre) {
+                        nombreMaestro = horario.maestro.nombre;
+                        console.log("Usando propiedad maestro.nombre:", nombreMaestro);
+                    } else if (horario.maestro && horario.maestro.name) {
+                        nombreMaestro = horario.maestro.name;
+                        console.log("Usando propiedad maestro.name:", nombreMaestro);
+                    } else {
+                        // Intentar buscar en cada propiedad del objeto
+                        for (const prop in horario) {
+                            if (typeof horario[prop] === 'string' && 
+                                (prop.toLowerCase().includes('maestro') || prop.toLowerCase().includes('teacher'))) {
+                                nombreMaestro = horario[prop];
+                                console.log(`Encontrado en propiedad ${prop}:`, nombreMaestro);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    console.log("Datos del horario para renderizar:", {
+                        inicio: horario.horaInicio,
+                        fin: horario.horaFin,
+                        materia: horario.materia,
+                        maestro: nombreMaestro,
+                        maestroId: horario.maestroId
+                    });
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${horario.horaInicio || ''} - ${horario.horaFin || ''}</td>
+                        <td>${horario.materia || 'Sin asignar'}</td>
+                        <td>${nombreMaestro}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                // Actualizar botón eliminar
+                const btnEliminar = document.querySelector('.boton-global-rojo');
+                btnEliminar.onclick = async () => {
+                    if (confirm('¿Está seguro de eliminar este horario?')) {
+                        try {
+                            await eliminarHorario(horarios[0].id);
+                            alert('Horario eliminado correctamente');
+                            cargarHorario(grupoId);
+                        } catch (error) {
+                            console.error('Error al eliminar horario:', error);
+                            alert('Error al eliminar horario');
+                        }
+                    }
+                };
+            } else {
+                // Mostrar mensaje si no hay horarios
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="3">No hay horarios disponibles para este grupo</td>`;
+                tbody.appendChild(tr);
+            }
+        } catch (error) {
+            console.error('Error al cargar horario:', error);
+            // Mostrar el error en la interfaz para mejor experiencia de usuario
+            const tablaHorario = document.querySelector('.horario-ver table');
+            const tbody = tablaHorario.querySelector('tbody') || tablaHorario;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="3">Error al cargar el horario: ${error.message}</td>`;
+            tbody.appendChild(tr);
+        }
+    }
+    
+    // Eventos
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarGrupos();
+        
+        // Cambio de grupo en el select
+        const selectGrupo = document.querySelector('select[name="Grupo"]');
+        selectGrupo.addEventListener('change', (e) => {
+            cargarHorario(e.target.value);
+        });
+        
+        // Formulario de asistencia
+        const formAsistencia = document.querySelector('.form-usuarios');
+        formAsistencia.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Aquí iría la lógica para registrar la asistencia
+            alert('Asistencia registrada correctamente');
+        });
+    });
+</script>
+</html>

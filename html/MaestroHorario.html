@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../css/principal.css">
+        <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+        <title>Horario Maestro</title>
+    </head>
+    <body id="body">
+        <div class="l-navbar" id="navbar">
+            <nav class="nav">
+                <div>
+                    <a href="#" class="nav__logo">
+                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <span class="nav__logo-text">Maestro</span>
+                    </a>
+    
+                    <div class="nav__toggle" id="nav-toggle">
+                        <i class='bx bx-chevron-right'></i>
+                    </div>
+    
+                    <ul class="nav__list">
+                        <a href="#" class="nav__link active">
+                            <i class='bx bx-calendar-star nav__icon'></i>
+                            <span class="nav__text">Mi Horario</span>
+                        </a>
+                        <a href="#asistencias" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Mis Asistencias</span>
+                        </a>
+                    </ul>
+                </div>
+                <a href="#" id="logout" class="nav__link">           
+                    <i class='bx bx-log-out-circle nav__icon'></i>
+                    <span class="nav__text">Salir</span>
+                </a>
+            </nav>
+        </div>
+
+        <section>
+            <div class="form-usuarios" style="background: none;">
+                <h1 id="bienvenida">Bienvenido</h1>
+                <h2>Mi Horario de Clases</h2>
+            </div>
+
+            <div class="horario-ver">    
+                <table>
+                    <tr>
+                        <th colspan="5">HORARIO DE CLASES</th>
+                    </tr>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Materia</th>
+                        <th>Aula</th>
+                        <th>Día</th>
+                        <th>Grupo</th>
+                    </tr>
+                    <!-- Horario será cargado dinámicamente -->
+                </table>
+            </div>
+            
+            <br><br>
+            
+            <div id="asistencias" class="asistencias-container">
+                <h2>Mis Asistencias</h2>
+                
+                <div class="filtros">
+                    <input type="date" id="fechaInicio" class="input-fecha">
+                    <span>a</span>
+                    <input type="date" id="fechaFin" class="input-fecha">
+                    <button id="btnFiltrar" class="boton-global">Filtrar</button>
+                </div>
+
+                <div class="asistencias-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Materia</th>
+                                <th>Aula</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asistenciasBody">
+                            <!-- Las asistencias se cargarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </body>
+
+<script src="../js/sidebar.js"></script>
+<script type="module">
+    import { getHorariosByMaestroId, getMateriaById } from '../bd/horarios.js';
+    import { getMaestros } from '../bd/maestros.js';
+    import { getAsistenciasByMaestroId, registrarAsistencia } from '../bd/asistencias.js';
+    import { checkAuth, getCurrentUser, logout } from '../bd/auth.js';
+    import { getMaterias } from '../bd/materias.js';
+    
+    // Verificar autenticación
+    const user = checkAuth();
+    if (user && user.role !== 'Maestro') {
+        alert('No tienes permisos para acceder a esta página');
+        window.location.href = '../index.html';
+    }
+
+    // Manejar cierre de sesión
+    document.getElementById('logout').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const result = await logout();
+        if (result.success) {
+            window.location.href = '../index.html';
+        } else {
+            alert('Error al cerrar sesión');
+        }
+    });
+    
+    // Cargar información del maestro y su horario
+    async function cargarInformacionMaestro() {
+        try {
+            const user = getCurrentUser();
+            if (!user) {
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            document.getElementById('bienvenida').textContent = `Bienvenido ${user.name}`;
+            
+            // Cargar horario
+            await cargarHorario(user.docId);
+            
+            // Cargar asistencias
+            await cargarAsistencias(user.docId);
+        } catch (error) {
+            console.error('Error al cargar información del maestro:', error);
+        }
+    }
+    
+    // Cargar horario del maestro
+    async function cargarHorario(maestroId) {
+        try {
+            const horarios = await getHorariosByMaestroId(maestroId);
+            const materias = await getMaterias();
+            const tabla = document.querySelector('.horario-ver table');
+            
+            // Limpiar tabla excepto encabezados
+            const filas = tabla.querySelectorAll('tr');
+            for (let i = filas.length - 1; i >= 2; i--) {
+                tabla.removeChild(filas[i]);
+            }
+            
+            // Mostrar mensaje si no hay horarios
+            if (horarios.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="5">No hay horarios asignados</td>';
+                tabla.appendChild(tr);
+                return;
+            }
+            
+            // Agregar horarios a la tabla
+            horarios.forEach(horario => {
+                const materia = materias.find(m => m.id === horario.materiaId);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${horario.horaInicio} - ${horario.horaFin}</td>
+                    <td>${materia ? materia.nombre : 'N/A'}</td>
+                    <td>${horario.aula}</td>
+                    <td>${horario.dia || 'No especificado'}</td>
+                    <td>${horario.grupo || 'No especificado'}</td>
+                `;
+                tabla.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Error al cargar horario:', error);
+        }
+    }
+    
+    // Cargar asistencias del maestro
+    async function cargarAsistencias(maestroId, fechaInicio = null, fechaFin = null) {
+        try {
+            const asistencias = await getAsistenciasByMaestroId(maestroId, fechaInicio, fechaFin);
+            const materias = await getMaterias();
+            const tbody = document.getElementById('asistenciasBody');
+            tbody.innerHTML = '';
+            
+            // Mostrar mensaje si no hay asistencias
+            if (asistencias.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="5">No hay registros de asistencias</td>';
+                tbody.appendChild(tr);
+                return;
+            }
+            
+            // Agregar asistencias a la tabla
+            asistencias.forEach(asistencia => {
+                const materia = materias.find(m => m.id === asistencia.materiaId);
+                let fecha = 'N/A';
+                
+                // Manejar diferentes formatos de fecha
+                if (asistencia.fecha) {
+                    if (asistencia.fecha.seconds) {
+                        fecha = new Date(asistencia.fecha.seconds * 1000).toLocaleDateString();
+                    } else if (asistencia.fecha instanceof Date) {
+                        fecha = asistencia.fecha.toLocaleDateString();
+                    } else {
+                        fecha = asistencia.fecha;
+                    }
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${fecha}</td>
+                    <td>${asistencia.horaEntrada || asistencia.hora || 'N/A'}</td>
+                    <td>${materia ? materia.nombre : 'N/A'}</td>
+                    <td>${asistencia.aula || 'N/A'}</td>
+                    <td>
+                        <span class="estado ${(asistencia.estado || '').toLowerCase()}">
+                            ${asistencia.estado || (asistencia.asistio ? 'Asistió' : 'Falta')}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Error al cargar asistencias:', error);
+        }
+    }
+    
+    // Eventos
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarInformacionMaestro();
+        
+        // Filtrar asistencias por fecha
+        document.getElementById('btnFiltrar').addEventListener('click', () => {
+            const user = getCurrentUser();
+            if (!user) return;
+            
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            
+            if (!fechaInicio || !fechaFin) {
+                alert('Por favor seleccione ambas fechas para filtrar');
+                return;
+            }
+            
+            cargarAsistencias(user.docId, new Date(fechaInicio), new Date(fechaFin));
+        });
+    });
+</script>
+
+<style>
+.asistencias-container {
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    margin-top: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.asistencias-container h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.filtros {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.input-fecha {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.asistencias-table {
+    overflow-x: auto;
+}
+
+.estado {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.estado.puntual, .estado.asistió {
+    background: #e6ffe6;
+    color: #006600;
+}
+
+.estado.tarde {
+    background: #fff3e6;
+    color: #cc6600;
+}
+
+.estado.falta {
+    background: #ffe6e6;
+    color: #cc0000;
+}
+</style>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../css/principal.css">
+        <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+        <title>Usuarios Administrador</title>
+    </head>
+    <body id="body">
+        <div class="l-navbar" id="navbar">
+            <nav class="nav">
+                <div>
+                    <a href="#" class="nav__logo">
+                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <span class="nav__logo-text">Admin</span>
+                    </a>
+    
+                    <div class="nav__toggle" id="nav-toggle">
+                        <i class='bx bx-chevron-right'></i>
+                    </div>
+    
+                    <ul class="nav__list">
+                        <a href="menuAdmin.html" class="nav__link">
+                            <i class='bx bx-grid-alt nav__icon'></i>
+                            <span class="nav__text">Menu</span>
+                        </a>
+                        <a href="horarioAdmin.html" class="nav__link">
+                            <i class='bx bx-calendar-star nav__icon'></i>
+                            <span class="nav__text">Horario</span>
+                        </a>
+                        <a href="gruposAdmin.html" class="nav__link">
+                            <i class='bx bx-buildings nav__icon'></i>
+                            <span class="nav__text">Grupos</span>
+                        </a>
+                        <a href="usuariosAdmin.html" class="nav__link active">
+                            <i class='bx bx-user nav__icon' ></i>
+                            <span class="nav__text">Usuarios</span>
+                        </a>
+                        <a href="materiasAdmin.html" class="nav__link">
+                            <i class='bx bx-book-bookmark nav__icon' ></i>
+                            <span class="nav__text">Materia</span>
+                        </a>
+                        
+                        <a href="temariosAdmin.html" class="nav__link">
+                            <i class='bx bx-bookmark nav__icon'></i>
+                            <span class="nav__text">Temario</span>
+                        </a>              
+                    </ul>
+                </div>
+                <a href="#" class="nav__link" id="btnLogout">           
+                    <i class='bx bx-log-out-circle nav__icon'></i>
+                    <span class="nav__text">Salir</span>
+                </a>
+            </nav>
+        </div>
+        <section>
+            <div class="barra-opciones">
+                <a href="#" class="activo">Editar</a>
+                <a href="usuariosAdminAñadir.html">Añadir</a>
+            </div>
+
+            <!-- Buscar al usuario con su numero de cuenta -->
+            <form id="searchUserForm" class="form-usuarios" style="margin-bottom: 30px;">
+                <h1>Para poder ver o editar un usuario es necesario contar con un numero de cuenta</h1>
+                <div class="busqueda">
+                    <input type="text" id="searchAccountNumber" placeholder="Ingrese el numero de cuenta" required>
+                    <button type="submit" class="boton-global">Buscar</button>
+                </div>
+                <p id="searchError" style="color: red; display: none;"></p>
+            </form>
+
+            <!-- Formulario para editar usuario -->
+            <form id="editUserForm" class="form-usuarios" style="display: none;">
+                <h1>Datos del usuario</h1>
+                <input type="number" id="accountNumber" placeholder="Numero de cuenta">
+                <input type="text" id="name" placeholder="Nombre del usuario">
+                <input type="email" id="email" placeholder="Correo Electronico">
+                <input type="password" id="password" placeholder="Contraseña">
+                <label for="role">Rol del usuario</label>
+                <select id="role">
+                    <option value="Alumno">Alumno</option>
+                    <option value="Jefe de grupo">Jefe de grupo</option>
+                    <option value="Coordinador">Coordinador</option>
+                    <option value="Maestro">Maestro</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+                <div class="busqueda" style="flex-direction:row-reverse;">
+                    <button type="submit" class="boton-global">Guardar</button>
+                    <button type="button" id="btnDelete" class="boton-global-rojo">Eliminar</button>
+                </div>
+                <p id="editMessage" style="color: green; display: none;"></p>
+                <p id="editError" style="color: red; display: none;"></p>
+            </form>
+        </section>
+
+        <script src="../js/barraOpciones.js"></script>
+        <script src="../js/sidebar.js"></script>
+        
+        <script type="module">
+            import { checkAdminAuth, logout } from '../bd/auth.js';
+            import { getUserByAccountNumber, updateUser, deleteUser } from '../bd/users.js';
+            
+            // Verificar que el usuario sea administrador
+            const user = checkAdminAuth();
+            
+            // Variables globales
+            let currentUserId = null;
+            
+            // Si hay un usuario y tiene permisos de administrador
+            if (user) {
+                // Configurar el botón de cierre de sesión
+                document.getElementById('btnLogout').addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const result = await logout();
+                    if (result.success) {
+                        window.location.href = '../index.html';
+                    } else {
+                        alert('Error al cerrar sesión');
+                    }
+                });
+                
+                // Configurar el formulario de búsqueda
+                document.getElementById('searchUserForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const accountNumber = document.getElementById('searchAccountNumber').value;
+                    const searchError = document.getElementById('searchError');
+                    const editUserForm = document.getElementById('editUserForm');
+                    
+                    searchError.style.display = 'none';
+                    
+                    try {
+                        const foundUser = await getUserByAccountNumber(accountNumber);
+                        
+                        if (foundUser) {
+                            // Mostrar el formulario de edición
+                            editUserForm.style.display = 'block';
+                            
+                            // Llenar el formulario con los datos del usuario
+                            document.getElementById('accountNumber').value = foundUser.accountNumber;
+                            document.getElementById('name').value = foundUser.name;
+                            document.getElementById('email').value = foundUser.email;
+                            document.getElementById('password').value = ''; // No mostrar la contraseña
+                            
+                            // Seleccionar el rol del usuario
+                            const roleSelect = document.getElementById('role');
+                            for (let i = 0; i < roleSelect.options.length; i++) {
+                                if (roleSelect.options[i].value === foundUser.role) {
+                                    roleSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                            
+                            // Guardar el ID del usuario
+                            currentUserId = foundUser.id;
+                        } else {
+                            searchError.textContent = 'No se encontró ningún usuario con ese número de cuenta';
+                            searchError.style.display = 'block';
+                            editUserForm.style.display = 'none';
+                        }
+                    } catch (error) {
+                        searchError.textContent = error.message || 'Error al buscar usuario';
+                        searchError.style.display = 'block';
+                        editUserForm.style.display = 'none';
+                    }
+                });
+                
+                // Configurar el formulario de edición
+                document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const editMessage = document.getElementById('editMessage');
+                    const editError = document.getElementById('editError');
+                    
+                    editMessage.style.display = 'none';
+                    editError.style.display = 'none';
+                    
+                    // Si no hay un usuario seleccionado
+                    if (!currentUserId) {
+                        editError.textContent = 'No hay un usuario seleccionado para editar';
+                        editError.style.display = 'block';
+                        return;
+                    }
+                    
+                    const userData = {
+                        accountNumber: document.getElementById('accountNumber').value,
+                        name: document.getElementById('name').value,
+                        role: document.getElementById('role').value
+                    };
+                    
+                    // Solo actualizar el email si es diferente del actual
+                    const newEmail = document.getElementById('email').value;
+                    if (newEmail !== user.email) {
+                        userData.newEmail = newEmail;
+                    }
+                    
+                    // Solo actualizar la contraseña si se proporcionó una nueva
+                    const password = document.getElementById('password').value;
+                    if (password) {
+                        userData.password = password;
+                    }
+                    
+                    try {
+                        const result = await updateUser(currentUserId, userData);
+                        
+                        if (result.success) {
+                            editMessage.textContent = result.message || 'Usuario actualizado correctamente';
+                            editMessage.style.display = 'block';
+                        } else {
+                            editError.textContent = result.error || 'Error al actualizar usuario';
+                            editError.style.display = 'block';
+                        }
+                    } catch (error) {
+                        editError.textContent = error.message || 'Error al actualizar usuario';
+                        editError.style.display = 'block';
+                    }
+                });
+                
+                // Configurar el botón de eliminar
+                document.getElementById('btnDelete').addEventListener('click', async () => {
+                    if (!currentUserId) {
+                        const editError = document.getElementById('editError');
+                        editError.textContent = 'No hay un usuario seleccionado para eliminar';
+                        editError.style.display = 'block';
+                        return;
+                    }
+                    
+                    if (confirm('¿Está seguro que desea eliminar este usuario?')) {
+                        const editMessage = document.getElementById('editMessage');
+                        const editError = document.getElementById('editError');
+                        
+                        editMessage.style.display = 'none';
+                        editError.style.display = 'none';
+                        
+                        try {
+                            const result = await deleteUser(currentUserId);
+                            
+                            if (result.success) {
+                                editMessage.textContent = result.message || 'Usuario eliminado correctamente';
+                                editMessage.style.display = 'block';
+                                
+                                // Limpiar formulario y ocultar
+                                document.getElementById('editUserForm').reset();
+                                document.getElementById('editUserForm').style.display = 'none';
+                                currentUserId = null;
+                            } else {
+                                editError.textContent = result.error || 'Error al eliminar usuario';
+                                editError.style.display = 'block';
+                            }
+                        } catch (error) {
+                            editError.textContent = error.message || 'Error al eliminar usuario';
+                            editError.style.display = 'block';
+                        }
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

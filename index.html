@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checador Login</title>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <form id="loginForm" class="login">
+        <img src="img/vision2025.jpeg" alt="inserte logo">
+        <input type="email" id="email" placeholder="Correo Electrónico" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <a href="#">Olvidé mi contraseña</a>
+        <button type="submit">Acceder</button>
+        <p id="error-message" style="color: red; display: none;"></p>
+        <p>Chambeando <a href="html/usuariosAdminAñadir.html">registrarse</a></p>
+    </form>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module">
+        import { login } from './bd/auth.js';
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+            
+            errorMessage.style.display = 'none';
+            
+            try {
+                const result = await login(email, password);
+                
+                if (result.success) {
+                    // Redireccionar según el rol del usuario
+                    const user = result.user;
+                    if (user.role === 'Administrador') {
+                        window.location.href = 'html/menuAdmin.html';
+                    } else if (user.role === 'Maestro') {
+                        window.location.href = 'html/MaestroHorario.html';
+                    } else {
+                        window.location.href = 'html/menuAlumno.html';
+                    }
+                } else {
+                    errorMessage.textContent = result.error || 'Error al iniciar sesión';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = error.message || 'Error al iniciar sesión';
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

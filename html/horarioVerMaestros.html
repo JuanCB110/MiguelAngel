@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../css/principal.css">
+        <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+        <title>Horario Administrador</title>
+    </head>
+    <body id="body">
+        <div class="l-navbar" id="navbar">
+            <nav class="nav">
+                <div>
+                    <a href="#" class="nav__logo">
+                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <span class="nav__logo-text">Admin</span>
+                    </a>
+    
+                    <div class="nav__toggle" id="nav-toggle">
+                        <i class='bx bx-chevron-right'></i>
+                    </div>
+    
+                    <ul class="nav__list">
+                        <a href="menuAdmin.html" class="nav__link">
+                            <i class='bx bx-grid-alt nav__icon'></i>
+                            <span class="nav__text">Menu</span>
+                        </a>
+                        <a href="horarioAdmin.html" class="nav__link active">
+                            <i class='bx bx-calendar-star nav__icon'></i>
+                            <span class="nav__text">Horario</span>
+                        </a>
+                        <a href="gruposAdmin.html" class="nav__link">
+                            <i class='bx bx-buildings nav__icon'></i>
+                            <span class="nav__text">Grupos</span>
+                        </a>
+                        <a href="usuariosAdmin.html" class="nav__link">
+                            <i class='bx bx-user nav__icon' ></i>
+                            <span class="nav__text">Usuarios</span>
+                        </a>
+                        <a href="materiasAdmin.html" class="nav__link">
+                            <i class='bx bx-book-bookmark nav__icon' ></i>
+                            <span class="nav__text">Materia</span>
+                        </a>
+                        
+                        <a href="temariosAdmin.html" class="nav__link">
+                            <i class='bx bx-bookmark nav__icon'></i>
+                            <span class="nav__text">Temario</span>
+                        </a>              
+                    </ul>
+                </div>
+                <a href="../index.html" class="nav__link">           
+                    <i class='bx bx-log-out-circle nav__icon'></i>
+                    <span class="nav__text">Salir</span>
+                </a>
+            </nav>
+        </div>
+
+        <section>
+            <div class="barra-opciones" style="width: 40%;">
+                <a href="horarioAdmin.html">Ver Grupos</a>
+                <a href="" class="activo">Ver Maestros</a>
+                <a href="horarioAdminAñadir.html">Agregar Grupo</a>
+                <a href="horarioAdminAñadirMaestro.html">Agregar Maestro</a>
+            </div>
+
+            <div class="menu-desplegable">
+                <h1>Seleccione el horario del maestro que quiera ver</h1>
+                <select name="maestro" id="">
+                    <option value="401">Mike</option>
+                </select>
+            </div>
+            <div class="horario-ver">
+                <table>
+                    <tr>
+                        <th colspan="3">HORARIO DE MIGUEL MENDIVIL</th>
+                    </tr>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Materias</th>
+                        <th>Aula</th>
+                    </tr>
+                    <tr>
+                        <td>08:00 - 09:00</td>
+                        <td>Materia 1</td>
+                        <td>Aula 1</td>
+                    </tr>
+                    <tr>
+                        <td>09:00 - 10:00</td>
+                        <td>Materia 2</td>
+                        <td>Aula 2</td>
+                    </tr>
+                    <tr>
+                        <td>10:00 - 11:00</td>
+                        <td>Materia 3</td>
+                        <td>Aula 3</td>
+                    </tr>
+                    <!-- Agregar más filas según sea necesario -->
+                </table>
+            </div><br>
+            <div class="form-usuarios" style="background: none; align-items: center;">
+                <button class="boton-global-rojo" style="width: 60%;">Elimnar horario</button>
+            </div>
+            <br><br>
+            <form class="form-usuarios">
+                <h1>Checador de asistencia de los maestros</h1>
+                <input type="date">
+                <h1>Seleccione la hora</h1>
+                <select name="" id="">
+                    <option value="">13:00 - 14:00</option>
+                </select>
+                <h1>el maestro asistio?</h1>
+                <div class="check">
+                    <label for="">Marque la casilla si el maestro asistio</label>
+                    <input type="checkbox">
+                </div>
+                    <button class="boton-global">Guardar</button>
+            </form>
+            <br>
+        </section>
+    </body>
+
+<script src="../js/sidebar.js"></script>
+<script src="../js/barraOpciones.js"></script>
+<script type="module">
+    import { getHorariosByMaestroId, eliminarHorario } from '../bd/horarios.js';
+    import { getMaestros } from '../bd/maestros.js';
+    import { registrarAsistencia } from '../bd/asistencias.js';
+    import { checkAdminAuth } from '../bd/auth.js';
+    import { getMaterias } from '../bd/materias.js';
+    
+    // Verificar autenticación
+    checkAdminAuth();
+    
+    // Cargar maestros en el select
+    async function cargarMaestros() {
+        try {
+            const maestros = await getMaestros();
+            const selectMaestro = document.querySelector('select[name="maestro"]');
+            selectMaestro.innerHTML = '';
+            
+            maestros.forEach(maestro => {
+                const option = document.createElement('option');
+                option.value = maestro.id;
+                option.textContent = maestro.name || maestro.nombre;
+                selectMaestro.appendChild(option);
+            });
+            
+            // Cargar horario del primer maestro
+            if (maestros.length > 0) {
+                cargarHorario(maestros[0].id);
+            }
+        } catch (error) {
+            console.error('Error al cargar maestros:', error);
+        }
+    }
+    
+    // Cargar horario de un maestro
+    async function cargarHorario(maestroId) {
+        try {
+            const horarios = await getHorariosByMaestroId(maestroId);
+            const materias = await getMaterias();
+            const tablaHorario = document.querySelector('.horario-ver table');
+            
+            // Actualizar título
+            const maestros = await getMaestros();
+            const maestro = maestros.find(m => m.id === maestroId);
+            if (maestro) {
+                tablaHorario.querySelector('tr:first-child th').textContent = `HORARIO DE ${maestro.name || maestro.nombre}`;
+            }
+            
+            // Limpiar tabla excepto encabezados (las primeras 2 filas)
+            const tbody = tablaHorario.querySelector('tbody') || tablaHorario;
+            const filas = tbody.querySelectorAll('tr');
+            
+            // Si hay más de 2 filas (los encabezados), eliminar desde la tercera en adelante
+            if (filas.length > 2) {
+                // Comenzamos desde la tercera fila (índice 2) y eliminamos hacia abajo
+                // Importante: debemos trabajar con una copia de la NodeList porque estamos modificándola
+                Array.from(filas).slice(2).forEach(fila => {
+                    if (fila.parentNode) {
+                        fila.parentNode.removeChild(fila);
+                    }
+                });
+            }
+            
+            // Mostrar mensaje si no hay horarios
+            if (horarios.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="3">No hay horarios asignados para este maestro</td>';
+                tbody.appendChild(tr);
+                return;
+            }
+            
+            // Agregar horarios a la tabla
+            horarios.forEach(horario => {
+                const materia = materias.find(m => m.id === horario.materiaId);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${horario.horaInicio} - ${horario.horaFin}</td>
+                    <td>${materia ? materia.nombre : 'N/A'}</td>
+                    <td>${horario.aula}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            // Actualizar botón eliminar
+            const btnEliminar = document.querySelector('.boton-global-rojo');
+            btnEliminar.onclick = async () => {
+                if (confirm('¿Está seguro de eliminar este horario?')) {
+                    try {
+                        if (horarios.length > 0) {
+                            await eliminarHorario(horarios[0].id);
+                            alert('Horario eliminado correctamente');
+                            cargarHorario(maestroId);
+                        }
+                    } catch (error) {
+                        console.error('Error al eliminar horario:', error);
+                        alert('Error al eliminar horario');
+                    }
+                }
+            };
+        } catch (error) {
+            console.error('Error al cargar horario:', error);
+        }
+    }
+    
+    // Eventos
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarMaestros();
+        
+        // Cambio de maestro en el select
+        const selectMaestro = document.querySelector('select[name="maestro"]');
+        selectMaestro.addEventListener('change', (e) => {
+            cargarHorario(e.target.value);
+        });
+        
+        // Formulario de asistencia
+        const formAsistencia = document.querySelector('.form-usuarios');
+        formAsistencia.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fecha = e.target.querySelector('input[type="date"]').value;
+            const hora = e.target.querySelector('select').value;
+            const asistio = e.target.querySelector('input[type="checkbox"]').checked;
+            const maestroId = document.querySelector('select[name="maestro"]').value;
+            
+            try {
+                await registrarAsistencia({
+                    maestroId,
+                    fecha,
+                    hora,
+                    asistio,
+                    createdAt: new Date()
+                });
+                
+                alert('Asistencia registrada correctamente');
+                e.target.reset();
+            } catch (error) {
+                console.error('Error al registrar asistencia:', error);
+                alert('Error al registrar asistencia');
+            }
+        });
+    });
+</script>
+</html>
