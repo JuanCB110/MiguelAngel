@@ -161,6 +161,17 @@ export function checkJefeGrupoAuth() {
   return user;
 }
 
+// Verificar si el usuario tiene permisos de alumno
+export function checkAlumnoAuth() {
+  const user = checkAuth();
+  if (user && user.role !== 'Alumno' && user.role !== 'Administrador') {
+    alert('No tienes permisos para acceder a esta página');
+    window.location.href = '../index.html';
+    return null;
+  }
+  return user;
+}
+
 // Asignar jefe de grupo a un grupo específico
 export async function asignarJefeGrupo(userId, grupoId) {
   try {
@@ -209,6 +220,58 @@ export async function getJefesGrupo() {
     }));
   } catch (error) {
     console.error("Error al obtener jefes de grupo:", error);
-    throw error;
+    return [];
+  }
+}
+
+// Asignar alumno a un grupo específico
+export async function asignarAlumnoGrupo(userId, grupoId) {
+  try {
+    // Primero obtenemos el documento del usuario
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", userId));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      throw new Error("Usuario no encontrado");
+    }
+    
+    const userDoc = querySnapshot.docs[0];
+    const userRef = doc(db, "users", userDoc.id);
+    
+    // Actualizamos el documento con el ID del grupo
+    await updateDoc(userRef, {
+      grupoId: grupoId,
+      role: 'Alumno', // Aseguramos que tenga el rol correcto
+      updatedAt: new Date()
+    });
+    
+    return { 
+      success: true, 
+      message: "Alumno asignado correctamente" 
+    };
+  } catch (error) {
+    console.error("Error al asignar alumno a grupo:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// Obtener todos los alumnos
+export async function getAlumnos() {
+  try {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("role", "==", "Alumno"));
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error("Error al obtener alumnos:", error);
+    return [];
   }
 } 
