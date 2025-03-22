@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../css/principal.css">
+        <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+        <title>Reporte de Asistencias</title>
+        <style>
+            .filtros-container {
+                background-color: #f5f5f5;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            .filtro {
+                flex: 1;
+                min-width: 200px;
+            }
+            .reporte-header {
+                background-color: #007bff;
+                color: white;
+                text-align: center;
+                padding: 10px;
+                border-radius: 5px 5px 0 0;
+                margin-bottom: 0;
+            }
+            .tabla-reporte {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 0;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .tabla-reporte th {
+                background-color: #f2f2f2;
+                padding: 12px;
+                text-align: left;
+            }
+            .tabla-reporte td {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+            }
+            .tabla-reporte tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            .tabla-reporte tr:hover {
+                background-color: #f1f1f1;
+            }
+            .estados-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            .estado-card {
+                background-color: white;
+                border-radius: 8px;
+                padding: 15px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                flex: 1;
+                min-width: 150px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .estado-card h3 {
+                margin: 0 0 10px 0;
+            }
+            .estado-numero {
+                font-size: 28px;
+                font-weight: bold;
+            }
+            .asistio {
+                color: #28a745;
+            }
+            .falta {
+                color: #dc3545;
+            }
+            .total {
+                color: #17a2b8;
+            }
+            .estado {
+                padding: 5px 10px;
+                border-radius: 50px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            .estado-asistio {
+                background-color: #d4edda;
+                color: #155724;
+            }
+            .estado-falta {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+            select, input[type="date"] {
+                background-color: white;
+                color: #333;
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+                width: 100%;
+            }
+            .loading {
+                text-align: center;
+                padding: 20px;
+                font-style: italic;
+                color: #666;
+            }
+            .export-btn {
+                margin-left: 10px;
+                background-color: #28a745;
+                border: none;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+            .export-btn:hover {
+                background-color: #218838;
+            }
+            .actions-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+            .alert-info {
+                background-color: #d1ecf1;
+                color: #0c5460;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 15px;
+            }
+        </style>
+    </head>
+    <body id="body">
+        <div class="l-navbar" id="navbar">
+            <nav class="nav">
+                <div>
+                    <a href="#" class="nav__logo">
+                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <span class="nav__logo-text">Coordinador</span>
+                    </a>
+    
+                    <div class="nav__toggle" id="nav-toggle">
+                        <i class='bx bx-chevron-right'></i>
+                    </div>
+    
+                    <ul class="nav__list">
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-calendar-star nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
+                        </a>
+                        <a href="horarioAdmin.html" class="nav__link">
+                            <i class='bx bx-grid-alt nav__icon'></i>
+                            <span class="nav__text">Horarios</span>
+                        </a>
+                        <a href="#" class="nav__link active">
+                            <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
+                            <span class="nav__text">Reportes</span>
+                        </a>
+                    </ul>
+                </div>
+                <a href="../index.html" class="nav__link" id="logout-link">           
+                    <i class='bx bx-log-out-circle nav__icon'></i>
+                    <span class="nav__text">Salir</span>
+                </a>
+            </nav>
+        </div>
+
+        <section>
+            <h1>Reportes de Asistencia</h1>
+            
+            <div class="filtros-container">
+                <div class="filtro">
+                    <label for="fecha-inicio">Fecha Inicio</label>
+                    <input type="date" id="fecha-inicio" name="fechaInicio">
+                </div>
+                <div class="filtro">
+                    <label for="fecha-fin">Fecha Fin</label>
+                    <input type="date" id="fecha-fin" name="fechaFin">
+                </div>
+                <div class="filtro">
+                    <label for="maestro-select">Maestro</label>
+                    <select id="maestro-select">
+                        <option value="">Todos los maestros</option>
+                    </select>
+                </div>
+                <div class="filtro">
+                    <label>&nbsp;</label>
+                    <button id="btn-filtrar" class="boton-global">Aplicar Filtros</button>
+                </div>
+            </div>
+            
+            <div class="alert-info" id="info-filtros">
+                Seleccione las fechas y opcionalmente un maestro para generar el reporte.
+            </div>
+            
+            <div class="estados-container">
+                <div class="estado-card">
+                    <h3>Total Registros</h3>
+                    <div class="estado-numero total" id="total-registros">0</div>
+                </div>
+                <div class="estado-card">
+                    <h3>Asistencias</h3>
+                    <div class="estado-numero asistio" id="total-asistencias">0</div>
+                </div>
+                <div class="estado-card">
+                    <h3>Faltas</h3>
+                    <div class="estado-numero falta" id="total-faltas">0</div>
+                </div>
+                <div class="estado-card">
+                    <h3>Porcentaje Asistencia</h3>
+                    <div class="estado-numero asistio" id="porcentaje-asistencia">0%</div>
+                </div>
+            </div>
+            
+            <div class="actions-container">
+                <h2 class="reporte-header">REGISTROS DE ASISTENCIA</h2>
+                <div>
+                    <button id="btn-exportar-excel" class="export-btn">
+                        <i class='bx bx-table'></i> Exportar Excel
+                    </button>
+                    <button id="btn-exportar-pdf" class="export-btn">
+                        <i class='bx bxs-file-pdf'></i> Exportar PDF
+                    </button>
+                </div>
+            </div>
+            
+            <table class="tabla-reporte" id="tabla-reporte">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Maestro</th>
+                        <th>Materia</th>
+                        <th>Aula</th>
+                        <th>Estado</th>
+                        <th>Registrado por</th>
+                    </tr>
+                </thead>
+                <tbody id="reporte-body">
+                    <tr>
+                        <td colspan="7" class="loading">Seleccione filtros y presione Aplicar Filtros</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </body>
+
+<script src="../js/sidebar.js"></script>
+<script type="module">
+    // Importar funciones necesarias
+    import { 
+        getAsistencias, 
+        getAsistenciasByMaestroId, 
+        getAsistenciasPorFecha 
+    } from '../bd/asistencias.js';
+    import { getMaestros, getMaestroPorId } from '../bd/maestros.js';
+    import { checkAuth, checkCoordinadorAuth, getCurrentUser, logout } from '../bd/auth.js';
+    
+    // Referencias a elementos DOM
+    const fechaInicio = document.getElementById('fecha-inicio');
+    const fechaFin = document.getElementById('fecha-fin');
+    const maestroSelect = document.getElementById('maestro-select');
+    const btnFiltrar = document.getElementById('btn-filtrar');
+    const btnExportarExcel = document.getElementById('btn-exportar-excel');
+    const btnExportarPDF = document.getElementById('btn-exportar-pdf');
+    const reporteBody = document.getElementById('reporte-body');
+    const totalRegistros = document.getElementById('total-registros');
+    const totalAsistencias = document.getElementById('total-asistencias');
+    const totalFaltas = document.getElementById('total-faltas');
+    const porcentajeAsistencia = document.getElementById('porcentaje-asistencia');
+    const infoFiltros = document.getElementById('info-filtros');
+    const logoutLink = document.getElementById('logout-link');
+    
+    // Variables globales
+    let currentUser = null;
+    let maestros = [];
+    let asistencias = [];
+    
+    // Configurar fechas
+    const hoy = new Date();
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hoy.getDate() - 30);
+    
+    fechaInicio.value = hace30Dias.toISOString().split('T')[0];
+    fechaFin.value = hoy.toISOString().split('T')[0];
+    
+    // Inicializar
+    async function inicializar() {
+        try {
+            // Usar la función específica para coordinadores
+            currentUser = checkCoordinadorAuth();
+            
+            if (!currentUser) {
+                return; // La función ya redirige si no tiene permiso
+            }
+            
+            // Cargar maestros
+            await cargarMaestros();
+            
+            // Generamos reporte inicial con los últimos 30 días
+            await generarReporte();
+            
+        } catch (error) {
+            console.error('Error al inicializar:', error);
+            alert('Error al inicializar el reporte');
+        }
+    }
+    
+    // Cargar maestros
+    async function cargarMaestros() {
+        try {
+            maestros = await getMaestros();
+            
+            maestros.forEach(maestro => {
+                const option = document.createElement('option');
+                option.value = maestro.id;
+                option.textContent = maestro.nombre || maestro.name || `Maestro ${maestro.id}`;
+                maestroSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar maestros:', error);
+        }
+    }
+    
+    // Generar reporte
+    async function generarReporte() {
+        try {
+            const inicio = fechaInicio.value ? new Date(fechaInicio.value) : null;
+            const fin = fechaFin.value ? new Date(fechaFin.value) : null;
+            const maestroId = maestroSelect.value;
+            
+            if (!inicio || !fin) {
+                alert('Debe seleccionar fechas de inicio y fin');
+                return;
+            }
+            
+            // Mostrar mensaje de carga
+            reporteBody.innerHTML = '<tr><td colspan="7" class="loading">Cargando registros...</td></tr>';
+            
+            // Actualizar información de filtros
+            const maestroText = maestroId ? maestros.find(m => m.id === maestroId)?.nombre || 'Maestro seleccionado' : 'Todos los maestros';
+            infoFiltros.textContent = `Mostrando registros del ${formatDate(inicio)} al ${formatDate(fin)} para ${maestroText}`;
+            
+            // Obtener asistencias según los filtros
+            if (maestroId) {
+                asistencias = await getAsistenciasByMaestroId(maestroId, inicio, fin);
+            } else {
+                // Si no hay maestro seleccionado, obtener todas las asistencias
+                asistencias = await getAsistencias();
+                
+                // Filtrar por fecha
+                asistencias = asistencias.filter(a => {
+                    let fechaAsistencia;
+                    
+                    if (a.fecha instanceof Date) {
+                        fechaAsistencia = a.fecha;
+                    } else if (typeof a.fecha === 'string') {
+                        fechaAsistencia = new Date(a.fecha);
+                    } else if (a.fecha && a.fecha.seconds) {
+                        fechaAsistencia = new Date(a.fecha.seconds * 1000);
+                    } else {
+                        return false;
+                    }
+                    
+                    return fechaAsistencia >= inicio && fechaAsistencia <= fin;
+                });
+            }
+            
+            // Ordenar por fecha y hora
+            asistencias.sort((a, b) => {
+                const fechaA = a.fecha instanceof Date ? a.fecha : new Date(a.fecha);
+                const fechaB = b.fecha instanceof Date ? b.fecha : new Date(b.fecha);
+                if (fechaA.getTime() !== fechaB.getTime()) {
+                    return fechaA - fechaB;
+                }
+                return a.hora.localeCompare(b.hora);
+            });
+            
+            // Si no hay asistencias
+            if (asistencias.length === 0) {
+                reporteBody.innerHTML = '<tr><td colspan="7" class="loading">No hay registros de asistencia con los filtros seleccionados</td></tr>';
+                actualizarEstadisticas(0, 0, 0);
+                return;
+            }
+            
+            // Calcular estadísticas
+            const totalAsistio = asistencias.filter(a => a.asistio).length;
+            const totalFaltaron = asistencias.length - totalAsistio;
+            actualizarEstadisticas(asistencias.length, totalAsistio, totalFaltaron);
+            
+            // Limpiar tabla
+            reporteBody.innerHTML = '';
+            
+            // Agregar asistencias al reporte
+            for (const asistencia of asistencias) {
+                // Formatear fecha
+                let fechaFormateada = formatDate(asistencia.fecha);
+                
+                // Crear fila
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${fechaFormateada}</td>
+                    <td>${asistencia.hora || 'N/A'}</td>
+                    <td>${asistencia.nombreMaestro || 'Sin nombre'}</td>
+                    <td>${asistencia.materia || 'N/A'}</td>
+                    <td>${asistencia.aula || 'N/A'}</td>
+                    <td>
+                        <span class="estado ${asistencia.asistio ? 'estado-asistio' : 'estado-falta'}">
+                            ${asistencia.estado || (asistencia.asistio ? 'Asistió' : 'Falta')}
+                        </span>
+                    </td>
+                    <td>${asistencia.registradoPorNombre || 'Sistema'}</td>
+                `;
+                reporteBody.appendChild(tr);
+            }
+            
+        } catch (error) {
+            console.error('Error al generar reporte:', error);
+            reporteBody.innerHTML = '<tr><td colspan="7" class="loading">Error al generar reporte</td></tr>';
+        }
+    }
+    
+    // Actualizar estadísticas
+    function actualizarEstadisticas(total, asistieron, faltaron) {
+        totalRegistros.textContent = total;
+        totalAsistencias.textContent = asistieron;
+        totalFaltas.textContent = faltaron;
+        
+        const porcentaje = total > 0 ? Math.round((asistieron / total) * 100) : 0;
+        porcentajeAsistencia.textContent = `${porcentaje}%`;
+    }
+    
+    // Formatear fecha
+    function formatDate(fecha) {
+        if (!fecha) return 'N/A';
+        
+        let fechaObj;
+        if (fecha instanceof Date) {
+            fechaObj = fecha;
+        } else if (typeof fecha === 'string') {
+            fechaObj = new Date(fecha);
+        } else if (fecha.seconds) {
+            fechaObj = new Date(fecha.seconds * 1000);
+        } else {
+            return 'Fecha inválida';
+        }
+        
+        return fechaObj.toLocaleDateString();
+    }
+    
+    // Exportar a Excel
+    function exportarExcel() {
+        try {
+            // Verificar si hay datos para exportar
+            if (asistencias.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+            
+            // Formatear datos para CSV
+            let csv = 'Fecha,Hora,Maestro,Materia,Aula,Estado,Registrado Por\n';
+            
+            asistencias.forEach(a => {
+                const fecha = formatDate(a.fecha);
+                const hora = a.hora || 'N/A';
+                const maestro = a.nombreMaestro || 'Sin nombre';
+                const materia = a.materia || 'N/A';
+                const aula = a.aula || 'N/A';
+                const estado = a.asistio ? 'Asistió' : 'Falta';
+                const registrador = a.registradoPorNombre || 'Sistema';
+                
+                csv += `"${fecha}","${hora}","${maestro}","${materia}","${aula}","${estado}","${registrador}"\n`;
+            });
+            
+            // Crear blob y enlace para descargar
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'reporte_asistencias.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+        } catch (error) {
+            console.error('Error al exportar a Excel:', error);
+            alert('Error al exportar a Excel');
+        }
+    }
+    
+    // Exportar a PDF
+    function exportarPDF() {
+        alert('Funcionalidad de exportación a PDF en desarrollo');
+        
+        // Nota: Aquí se implementaría la exportación a PDF utilizando una biblioteca como jsPDF
+        // Esta funcionalidad requiere una implementación más compleja que está fuera del alcance actual
+    }
+    
+    // Eventos
+    document.addEventListener('DOMContentLoaded', () => {
+        // Inicializar
+        inicializar();
+        
+        // Evento de filtro
+        btnFiltrar.addEventListener('click', generarReporte);
+        
+        // Evento de exportar a Excel
+        btnExportarExcel.addEventListener('click', exportarExcel);
+        
+        // Evento de exportar a PDF
+        btnExportarPDF.addEventListener('click', exportarPDF);
+        
+        // Evento para cerrar sesión
+        logoutLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await logout();
+                window.location.href = '../index.html';
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+            }
+        });
+    });
+</script>
+</html> 

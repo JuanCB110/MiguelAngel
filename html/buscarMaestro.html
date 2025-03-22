@@ -42,7 +42,7 @@
         <section>
             <div class="form-usuarios" style="background: none;">
                 <h1>Seleccione el horario del maestro que desea buscar</h1>
-                <select name="" id="">
+                <select name="" id="maestro-select">
                     <option value="">Miguel Mendivil</option>
                 </select>
             </div>
@@ -52,61 +52,61 @@
             <div class="horario-ver">    
                 <table>
                     <tr>
-                        <th colspan="3">HORARIO DE MIGUEL MENDIVIL</th>
+                        <th colspan="5">HORARIO DE MAESTRO</th>
                     </tr>
                     <tr>
                         <th>Hora</th>
-                        <th>Materias</th>
+                        <th>Día</th>
+                        <th>Materia</th>
+                        <th>Grupo</th>
                         <th>Aula</th>
                     </tr>
                     <tr>
-                        <td>08:00 - 09:00</td>
-                        <td>Materia 1</td>
-                        <td>Aula 1</td>
+                        <td colspan="5">Seleccione un maestro para ver su horario</td>
                     </tr>
-                    <tr>
-                        <td>09:00 - 10:00</td>
-                        <td>Materia 2</td>
-                        <td>Aula 2</td>
-                    </tr>
-                    <tr>
-                        <td>10:00 - 11:00</td>
-                        <td>Materia 3</td>
-                        <td>Aula 3</td>
-                    </tr>
-                    <!-- Agregar más filas según sea necesario -->
                 </table>
+            </div>
         </section>
     </body>
 
 <script src="../js/sidebar.js"></script>
 <script src="../js/barraOpciones.js"></script>
 <script type="module">
-    import { getHorarioPorMaestro } from '../bd/horarios.js';
-    import { getMaestros } from '../bd/maestros.js';
     import { checkAuth } from '../bd/auth.js';
+    import { getMaestros } from '../bd/maestros.js';
+    import { getHorariosByMaestroId } from '../bd/horarios.js';
     
     // Verificar autenticación
     checkAuth();
     
-    // Cargar maestros en el select
+    // Cuando se carga el documento
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarMaestros();
+    });
+    
+    // Cargar lista de maestros
     async function cargarMaestros() {
         try {
             const maestros = await getMaestros();
-            const selectMaestro = document.querySelector('select');
-            selectMaestro.innerHTML = '';
+            const selectMaestro = document.getElementById('maestro-select');
             
+            // Limpiar opciones existentes
+            selectMaestro.innerHTML = '<option value="">Seleccione un maestro</option>';
+            
+            // Agregar maestros al select
             maestros.forEach(maestro => {
                 const option = document.createElement('option');
                 option.value = maestro.id;
-                option.textContent = maestro.nombre;
+                option.textContent = maestro.nombre || maestro.name;
                 selectMaestro.appendChild(option);
             });
             
-            // Cargar horario del primer maestro
-            if (maestros.length > 0) {
-                cargarHorario(maestros[0].id);
-            }
+            // Evento para cuando se selecciona un maestro
+            selectMaestro.addEventListener('change', function() {
+                if (this.value) {
+                    cargarHorario(this.value);
+                }
+            });
         } catch (error) {
             console.error('Error al cargar maestros:', error);
         }
@@ -115,7 +115,7 @@
     // Cargar horario de un maestro
     async function cargarHorario(maestroId) {
         try {
-            const horarios = await getHorarioPorMaestro(maestroId);
+            const horarios = await getHorariosByMaestroId(maestroId);
             const tablaHorario = document.querySelector('.horario-ver table');
             
             // Actualizar título
@@ -138,25 +138,36 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${horario.horaInicio} - ${horario.horaFin}</td>
-                    <td>${horario.materia}</td>
-                    <td>${horario.aula}</td>
+                    <td>${horario.dia || 'No asignado'}</td>
+                    <td>${horario.materia || 'No asignada'}</td>
+                    <td>${horario.grupo || 'No asignado'}</td>
+                    <td>${horario.aula || 'No asignada'}</td>
                 `;
                 tablaHorario.appendChild(tr);
             });
+            
+            // Mensaje si no hay horarios
+            if (horarios.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="5">No hay horarios para este maestro</td>`;
+                tablaHorario.appendChild(tr);
+            }
         } catch (error) {
-            console.error('Error al cargar horario:', error);
+            console.error('Error al cargar horario del maestro:', error);
+            const tablaHorario = document.querySelector('.horario-ver table');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="5">Error al cargar el horario</td>`;
+            
+            // Limpiar tabla excepto encabezados
+            const filas = tablaHorario.querySelectorAll('tr');
+            if (filas.length > 2) {
+                for (let i = filas.length - 1; i >= 2; i--) {
+                    tablaHorario.removeChild(filas[i]);
+                }
+            }
+            
+            tablaHorario.appendChild(tr);
         }
     }
-    
-    // Eventos
-    document.addEventListener('DOMContentLoaded', () => {
-        cargarMaestros();
-        
-        // Cambio de maestro en el select
-        const selectMaestro = document.querySelector('select');
-        selectMaestro.addEventListener('change', (e) => {
-            cargarHorario(e.target.value);
-        });
-    });
 </script>
 </html>

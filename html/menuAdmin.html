@@ -6,6 +6,18 @@
         <link rel="stylesheet" href="../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Menu Administrador</title>
+        <!-- Script de verificación de autenticación inmediata -->
+        <script type="module">
+            import { checkAdminAuth } from '../bd/auth.js';
+            // Verificar autenticación inmediatamente
+            document.addEventListener('DOMContentLoaded', () => {
+                const user = checkAdminAuth();
+                if (!user) {
+                    // Si no hay usuario autenticado, la función checkAdminAuth ya redirige
+                    throw new Error('No autorizado');
+                }
+            });
+        </script>
     </head>
     <body id="body">
         <div class="l-navbar" id="navbar">
@@ -29,6 +41,14 @@
                             <i class='bx bx-calendar-star nav__icon'></i>
                             <span class="nav__text">Horario</span>
                         </a>
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
+                        </a>
+                        <a href="ReporteAsistencias.html" class="nav__link">
+                            <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
+                            <span class="nav__text">Reportes</span>
+                        </a>
                         <a href="gruposAdmin.html" class="nav__link">
                             <i class='bx bx-buildings nav__icon'></i>
                             <span class="nav__text">Grupos</span>
@@ -45,7 +65,11 @@
                         <a href="temariosAdmin.html" class="nav__link">
                             <i class='bx bx-bookmark nav__icon'></i>
                             <span class="nav__text">Temario</span>
-                        </a>              
+                        </a>
+                        <a href="asignarJefeGrupo.html" class="nav__link">
+                            <i class='bx bx-user-check nav__icon'></i>
+                            <span class="nav__text">Jefes de grupo</span>
+                        </a>
                     </ul>
                 </div>
                 <a href="#" class="nav__link" id="btnLogout">           

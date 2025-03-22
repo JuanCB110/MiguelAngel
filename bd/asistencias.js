@@ -7,7 +7,8 @@ import {
     deleteDoc, 
     doc, 
     query, 
-    where 
+    where, 
+    Timestamp 
 } from './firebase-config.js';
 
 // Obtener todas las asistencias
@@ -87,14 +88,54 @@ export const getAsistenciasPorMaestroYFecha = async (maestroId, fecha) => {
     }
 };
 
+// Obtener asistencias por grupo y fecha
+export const getAsistenciasPorGrupoYFecha = async (grupoId, fecha) => {
+    try {
+        const q = query(
+            collection(db, 'asistencias'),
+            where('grupoId', '==', grupoId),
+            where('fecha', '==', fecha)
+        );
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('Error al obtener asistencias por grupo y fecha:', error);
+        throw error;
+    }
+};
+
 // Registrar nueva asistencia
 export const registrarAsistencia = async (asistenciaData) => {
     try {
-        const docRef = await addDoc(collection(db, 'asistencias'), {
-            ...asistenciaData,
-            createdAt: new Date()
-        });
-        return docRef.id;
+        // Verificar si ya existe una asistencia para ese maestro en esa fecha y hora
+        const q = query(
+            collection(db, 'asistencias'),
+            where('maestroId', '==', asistenciaData.maestroId),
+            where('fecha', '==', asistenciaData.fecha),
+            where('hora', '==', asistenciaData.hora)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            // Si ya existe, actualizar en lugar de crear uno nuevo
+            const docRef = doc(db, 'asistencias', querySnapshot.docs[0].id);
+            await updateDoc(docRef, {
+                ...asistenciaData,
+                updatedAt: new Date()
+            });
+            return { id: docRef.id, ...asistenciaData };
+        } else {
+            // Si no existe, crear uno nuevo
+            const docRef = await addDoc(collection(db, 'asistencias'), {
+                ...asistenciaData,
+                createdAt: new Date()
+            });
+            return { id: docRef.id, ...asistenciaData };
+        }
     } catch (error) {
         console.error('Error al registrar asistencia:', error);
         throw error;
@@ -105,8 +146,11 @@ export const registrarAsistencia = async (asistenciaData) => {
 export const actualizarAsistencia = async (asistenciaId, asistenciaData) => {
     try {
         const asistenciaRef = doc(db, 'asistencias', asistenciaId);
-        await updateDoc(asistenciaRef, asistenciaData);
-        return true;
+        await updateDoc(asistenciaRef, {
+            ...asistenciaData,
+            updatedAt: new Date()
+        });
+        return { id: asistenciaId, ...asistenciaData };
     } catch (error) {
         console.error('Error al actualizar asistencia:', error);
         throw error;

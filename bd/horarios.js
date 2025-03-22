@@ -95,6 +95,8 @@ export const getHorariosByMaestroId = async (maestroId) => {
             ...doc.data()
         }));
         
+        console.log("Horarios antes de procesar para maestro:", JSON.stringify(horarios, null, 2));
+        
         // Enriquecer los datos con información de grupos, maestros y materias
         if (horarios.length > 0) {
             // Importamos las funciones necesarias
@@ -120,13 +122,13 @@ export const getHorariosByMaestroId = async (maestroId) => {
                     }
                 }
                 
-                // Añadir info del maestro
-                if (maestro) {
-                    horarios[i].nombreMaestro = maestro.nombre;
+                // Añadir info del maestro si no existe
+                if (!horarios[i].nombreMaestro && maestro) {
+                    horarios[i].nombreMaestro = maestro.nombre || maestro.name || `Maestro ${maestroId}`;
                 }
                 
-                // Añadir info de la materia
-                if (horarios[i].materiaId) {
+                // Añadir info de la materia si no existe
+                if (!horarios[i].materia && horarios[i].materiaId) {
                     const materia = materias.find(m => m.id === horarios[i].materiaId);
                     if (materia) {
                         horarios[i].materia = materia.nombre;
@@ -135,6 +137,7 @@ export const getHorariosByMaestroId = async (maestroId) => {
             }
         }
         
+        console.log("Horarios después de procesar para maestro:", JSON.stringify(horarios, null, 2));
         return horarios;
     } catch (error) {
         console.error('Error al obtener horario por maestro:', error);

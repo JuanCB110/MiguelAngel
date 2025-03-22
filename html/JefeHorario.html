@@ -1,11 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-        <title>Horario Administrador</title>
+        <title>Horario - Jefe de Grupo</title>
+        <!-- Script de verificación de autenticación inmediata -->
+        <script type="module">
+            import { checkJefeGrupoAuth } from '../bd/auth.js';
+            // Verificar autenticación inmediatamente
+            document.addEventListener('DOMContentLoaded', () => {
+                const user = checkJefeGrupoAuth();
+                if (!user) {
+                    // Si no hay usuario autenticado, la función checkJefeGrupoAuth ya redirige
+                    throw new Error('No autorizado');
+                }
+            });
+        </script>
+        <style>
+            .grupo-info {
+                background-color: #f5f5f5;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .check {
+                display: flex;
+                align-items: center;
+                margin: 10px 0;
+            }
+            .check input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                margin-left: 10px;
+            }
+            .estado {
+                padding: 5px 10px;
+                border-radius: 50px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            .asistio {
+                background-color: #d4edda;
+                color: #155724;
+            }
+            .falta {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+            .horario-header {
+                background-color: #007bff;
+                color: white;
+                text-align: center;
+                padding: 10px;
+                border-radius: 5px 5px 0 0;
+                margin-bottom: 0;
+            }
+            .horario-ver table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 0;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .horario-ver table th {
+                background-color: #f2f2f2;
+                padding: 12px;
+                text-align: left;
+            }
+            .horario-ver table td {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+            }
+            .horario-ver table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+            .horario-ver table tr:hover {
+                background-color: #f1f1f1;
+            }
+            .loading {
+                text-align: center;
+                padding: 20px;
+                font-style: italic;
+                color: #666;
+            }
+            select, input[type="date"] {
+                background-color: white;
+                color: #333;
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+                width: 100%;
+            }
+        </style>
     </head>
     <body id="body">
         <div class="l-navbar" id="navbar">
@@ -13,9 +102,8 @@
                 <div>
                     <a href="#" class="nav__logo">
                         <img src="../assets/star.svg" alt="" class="nav__logo-icon">
-
                         <!--? Al jefe de grupo le sale el numero de su grupo  -->
-                        <span class="nav__logo-text">401</span>
+                        <span class="nav__logo-text" id="numero-grupo">Grupo</span>
                     </a>
     
                     <div class="nav__toggle" id="nav-toggle">
@@ -33,179 +121,303 @@
                         </a>
                     </ul>
                 </div>
-                <a href="../index.html" class="nav__link">           
+                <a href="#" class="nav__link" id="logout-link">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
             </nav>
         </div>
-
         
         <section>
-            <div class="form-usuarios" style="background: none;">
-                <h1>Bienvenido @JefeGrupo</h1>
-                <label for="">Seleccione la semana que desea ver o registrar</label>
-                <select name="" id="">
-                    <option value="">Semana 1</option>
-                </select>
+            <div class="grupo-info">
+                <h1 id="welcome-message">Bienvenido Jefe de Grupo</h1>
+                
+                <div class="form-group">
+                    <label for="fecha-actual">Fecha de hoy</label>
+                    <input type="date" id="fecha-actual" name="fecha">
+                </div>
             </div>
 
-            
-
+            <h2 class="horario-header" id="grupo-header">HORARIO DEL GRUPO</h2>
             <div class="horario-ver">
-                <table>
-                    <tr>
-                        <th colspan="3">GRUPO X - IS - EDIFICIO BX ::::::: AULA X</th>
-                    </tr>
+                <table id="tabla-horario">
                     <tr>
                         <th>Hora</th>
-                        <th>Materias</th>
+                        <th>Materia</th>
                         <th>Maestro</th>
+                        <th>Estado</th>
                     </tr>
                     <tr>
-                        <td>08:00 - 09:00</td>
-                        <td>Materia 1</td>
-                        <td>Profesor 1</td>
+                        <td colspan="4" class="loading">Cargando horario del grupo...</td>
                     </tr>
-                    <tr>
-                        <td>09:00 - 10:00</td>
-                        <td>Materia 2</td>
-                        <td>Profesor 2</td>
-                    </tr>
-                    <tr>
-                        <td>10:00 - 11:00</td>
-                        <td>Materia 3</td>
-                        <td>Profesor 3</td>
-                    </tr>
-                    <!-- Agregar más filas según sea necesario -->
                 </table>
             </div>
-            <div class="form-usuarios" style="background: none; align-items: center;">
-            </div>
-            <br><br>
-            <form class="form-usuarios">
-                <h1>Checador de asistencia de los maestros</h1>
-                <input type="date">
-                <h1>Seleccione la hora</h1>
-                <select name="" id="">
-                    <option value="">13:00 - 14:00</option>
-                </select>
-                <h1>el maestro asistio?</h1>
-                <div class="check">
-                    <label for="">Marque la casilla si el maestro asistio</label>
-                    <input type="checkbox">
-                </div>
-                    <button class="boton-global">Guardar</button>
-            </form>
+            
             <br>
+            
+            <form class="form-usuarios" id="form-asistencia">
+                <h1>Registrar Asistencia</h1>
+                
+                <div class="form-group">
+                    <label for="fecha-registro">Fecha de registro</label>
+                    <input type="date" id="fecha-registro" name="fecha" required>
+            </div>
+                
+                <div class="form-group">
+                    <label for="hora-select">Seleccione la hora</label>
+                    <select name="hora" id="hora-select" required>
+                        <option value="">Seleccione un horario</option>
+                </select>
+                </div>
+                
+                <div class="form-group">
+                    <h3>¿El maestro asistió?</h3>
+                <div class="check">
+                        <label for="asistio">Marque la casilla si el maestro asistió</label>
+                        <input type="checkbox" id="asistio" name="asistio">
+                    </div>
+                </div>
+                
+                <button type="submit" class="boton-global">Guardar Asistencia</button>
+            </form>
         </section>
     </body>
 
 <script src="../js/sidebar.js"></script>
-<script src="../js/barraOpciones.js"></script>
 <script type="module">
     import { getHorarioPorGrupo } from '../bd/horarios.js';
     import { getGrupoPorId } from '../bd/grupos.js';
-    import { registrarAsistencia } from '../bd/asistencias.js';
-    import { checkAuth, getCurrentUser } from '../bd/auth.js';
+    import { 
+        registrarAsistencia,
+        getAsistenciasPorGrupoYFecha
+    } from '../bd/asistencias.js';
+    import { checkAuth, checkJefeGrupoAuth, getCurrentUser, logout } from '../bd/auth.js';
     
-    // Verificar autenticación
-    checkAuth();
+    // Referencias a elementos DOM
+    const welcomeMessage = document.getElementById('welcome-message');
+    const numeroGrupo = document.getElementById('numero-grupo');
+    const grupoHeader = document.getElementById('grupo-header');
+    const fechaActual = document.getElementById('fecha-actual');
+    const fechaRegistro = document.getElementById('fecha-registro');
+    const tablaHorario = document.getElementById('tabla-horario');
+    const horaSelect = document.getElementById('hora-select');
+    const formAsistencia = document.getElementById('form-asistencia');
+    const logoutLink = document.getElementById('logout-link');
     
+    // Variables globales
     let currentUser = null;
     let grupoId = null;
+    let horarioGrupo = [];
+    
+    // Configurar fecha actual
+    const hoy = new Date();
+    const fechaHoy = hoy.toISOString().split('T')[0];
+    fechaActual.value = fechaHoy;
+    fechaRegistro.value = fechaHoy;
     
     // Cargar información del jefe de grupo y su grupo
     async function cargarInformacionJefe() {
         try {
-            currentUser = await getCurrentUser();
+            // Usar la función específica para jefes de grupo
+            currentUser = checkJefeGrupoAuth();
+            
             if (!currentUser) {
-                window.location.href = '../index.html';
-                return;
+                return; // La función ya redirige si no tiene permiso
             }
             
             // Obtener el grupo asociado al jefe de grupo (esto dependerá de tu modelo de datos)
-            // Aquí asumimos que el jefe tiene una propiedad grupoId
             grupoId = currentUser.grupoId;
             
-            // Actualizar el logo del grupo
+            if (!grupoId) {
+                alert('No tienes un grupo asignado. Contacta al administrador.');
+                return;
+            }
+            
+            welcomeMessage.textContent = `Bienvenido ${currentUser.name || currentUser.displayName || currentUser.email}`;
+            
+            // Actualizar información del grupo
             const grupo = await getGrupoPorId(grupoId);
             if (grupo) {
-                document.querySelector('.nav__logo-text').textContent = grupo.numeroGrupo || grupo.nombre;
-                document.querySelector('h1').textContent = `Bienvenido ${currentUser.displayName || currentUser.email}`;
-                cargarHorario(grupoId);
+                numeroGrupo.textContent = grupo.numeroGrupo || grupo.nombre || "Grupo";
+                grupoHeader.textContent = `HORARIO: ${grupo.numeroGrupo || grupo.nombre} - ${grupo.carrera || ''} - AULA: ${grupo.aula || 'N/A'}`;
+                
+                // Cargar horario del grupo
+                await cargarHorario();
+            } else {
+                alert('No se pudo cargar la información del grupo. Contacta al administrador.');
             }
         } catch (error) {
             console.error('Error al cargar información del jefe de grupo:', error);
+            alert('Error al cargar información. Inténtalo de nuevo más tarde.');
         }
     }
     
     // Cargar horario del grupo
-    async function cargarHorario(grupoId) {
+    async function cargarHorario() {
+        if (!grupoId) return;
+        
         try {
-            const horarios = await getHorarioPorGrupo(grupoId);
-            const tablaHorario = document.querySelector('.horario-ver table');
+            // Mostrar mensaje de carga
+            const tbody = tablaHorario.querySelector('tbody') || tablaHorario;
+            tbody.innerHTML = '<tr><td colspan="4" class="loading">Cargando horario del grupo...</td></tr>';
             
-            // Actualizar título
-            const grupo = await getGrupoPorId(grupoId);
-            if (grupo) {
-                const titulo = `GRUPO ${grupo.numeroGrupo} - ${grupo.carrera} - EDIFICIO ${grupo.edificio} ::::::: AULA ${grupo.aula}`;
-                tablaHorario.querySelector('tr:first-child th').textContent = titulo;
+            // Obtener horarios
+            horarioGrupo = await getHorarioPorGrupo(grupoId);
+            console.log("Horarios obtenidos:", horarioGrupo);
+            
+            // Limpiar tabla y selector de horas
+            tbody.innerHTML = '';
+            horaSelect.innerHTML = '<option value="">Seleccione un horario</option>';
+            
+            // Si no hay horarios
+            if (horarioGrupo.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="loading">No hay horarios registrados para este grupo</td></tr>';
+                return;
             }
             
-            // Limpiar tabla excepto encabezados
-            const filas = tablaHorario.querySelectorAll('tr');
-            if (filas.length > 2) {
-                for (let i = filas.length - 1; i >= 2; i--) {
-                    tablaHorario.removeChild(filas[i]);
-                }
-            }
+            // Verificar asistencias del día actual
+            const asistenciasHoy = await getAsistenciasPorGrupoYFecha(grupoId, fechaActual.value);
             
             // Agregar horarios a la tabla
-            horarios.forEach(horario => {
+            horarioGrupo.forEach(horario => {
+                // Buscar si ya hay asistencia registrada para esta hora
+                const asistenciaRegistrada = asistenciasHoy.find(a => 
+                    a.hora === `${horario.horaInicio} - ${horario.horaFin}`
+                );
+                
+                // Determinar estado
+                let estadoHtml = '';
+                if (asistenciaRegistrada) {
+                    const estado = asistenciaRegistrada.asistio ? 'asistio' : 'falta';
+                    const textoEstado = asistenciaRegistrada.asistio ? 'Asistió' : 'Falta';
+                    estadoHtml = `<span class="estado ${estado}">${textoEstado}</span>`;
+                } else {
+                    estadoHtml = 'No registrado';
+                }
+                
+                // Agregar fila a la tabla
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${horario.horaInicio} - ${horario.horaFin}</td>
-                    <td>${horario.materia}</td>
-                    <td>${horario.nombreMaestro}</td>
+                    <td>${horario.materia || 'No asignada'}</td>
+                    <td>${horario.nombreMaestro || 'No asignado'}</td>
+                    <td>${estadoHtml}</td>
                 `;
-                tablaHorario.appendChild(tr);
+                tbody.appendChild(tr);
+                
+                // Agregar hora al select para registro de asistencia
+                const option = document.createElement('option');
+                option.value = `${horario.horaInicio} - ${horario.horaFin}`;
+                option.textContent = `${horario.horaInicio} - ${horario.horaFin} (${horario.materia || 'No asignada'})`;
+                option.dataset.horarioId = horario.id;
+                option.dataset.maestroId = horario.maestroId;
+                option.dataset.materiaId = horario.materiaId;
+                horaSelect.appendChild(option);
             });
         } catch (error) {
             console.error('Error al cargar horario:', error);
+            tablaHorario.innerHTML = '<tr><td colspan="4" class="loading">Error al cargar horario</td></tr>';
+        }
+    }
+    
+    // Registrar asistencia
+    async function registrarAsistenciaMaestro(event) {
+        event.preventDefault();
+        
+        try {
+            if (!grupoId) {
+                alert('No hay un grupo asignado');
+                return;
+            }
+            
+            const fecha = fechaRegistro.value;
+            const horarioCompleto = horaSelect.value;
+            const asistio = document.getElementById('asistio').checked;
+            
+            if (!fecha || !horarioCompleto) {
+                alert('Debe seleccionar fecha y horario');
+                return;
+            }
+            
+            // Obtener datos adicionales del horario seleccionado
+            const opcionSeleccionada = horaSelect.options[horaSelect.selectedIndex];
+            const maestroId = opcionSeleccionada.dataset.maestroId;
+            const materiaId = opcionSeleccionada.dataset.materiaId;
+            
+            if (!maestroId) {
+                alert('No hay un maestro asignado para esta hora');
+                return;
+            }
+            
+            // Obtener información del horario seleccionado
+            const horario = horarioGrupo.find(h => `${h.horaInicio} - ${h.horaFin}` === horarioCompleto);
+            
+            if (!horario) {
+                alert('Error al encontrar el horario seleccionado');
+                return;
+            }
+            
+            // Verificar si ya existe una asistencia para esta fecha y hora
+            const asistencias = await getAsistenciasPorGrupoYFecha(grupoId, fecha);
+            const asistenciaExistente = asistencias.find(a => a.hora === horarioCompleto);
+            
+            if (asistenciaExistente) {
+                if (!confirm('Ya existe un registro para esta fecha y hora. ¿Desea sobrescribirlo?')) {
+                    return;
+                }
+            }
+            
+            // Datos para el registro
+            const asistenciaData = {
+                grupoId: grupoId,
+                maestroId: maestroId,
+                nombreMaestro: horario.nombreMaestro,
+                materiaId: materiaId,
+                materia: horario.materia,
+                fecha: fecha,
+                hora: horarioCompleto,
+                aula: horario.aula,
+                asistio: asistio,
+                estado: asistio ? 'Asistió' : 'Falta',
+                registradoPor: currentUser.uid,
+                registradoPorNombre: currentUser.name || currentUser.displayName || currentUser.email
+            };
+            
+            // Registrar asistencia
+            await registrarAsistencia(asistenciaData);
+            alert('Asistencia registrada correctamente');
+            
+            // Recargar horario para mostrar la asistencia registrada
+            cargarHorario();
+            
+            // Limpiar formulario
+            document.getElementById('asistio').checked = false;
+            
+        } catch (error) {
+            console.error('Error al registrar asistencia:', error);
+            alert('Error al registrar asistencia: ' + error.message);
         }
     }
     
     // Eventos
     document.addEventListener('DOMContentLoaded', () => {
+        // Inicializar
         cargarInformacionJefe();
         
-        // Formulario de asistencia
-        const formAsistencia = document.querySelector('.form-usuarios');
-        formAsistencia.addEventListener('submit', async (e) => {
+        // Evento de cambio de fecha
+        fechaActual.addEventListener('change', cargarHorario);
+        
+        // Evento para registrar asistencia
+        formAsistencia.addEventListener('submit', registrarAsistenciaMaestro);
+        
+        // Evento para cerrar sesión
+        logoutLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            
-            if (!currentUser || !grupoId) return;
-            
-            const fecha = e.target.querySelector('input[type="date"]').value;
-            const hora = e.target.querySelector('select').value;
-            const asistio = e.target.querySelector('input[type="checkbox"]').checked;
-            
             try {
-                await registrarAsistencia({
-                    grupoId,
-                    fecha,
-                    hora,
-                    asistio,
-                    registradoPor: currentUser.uid,
-                    createdAt: new Date()
-                });
-                
-                alert('Asistencia registrada correctamente');
-                e.target.reset();
+                await logout();
+                window.location.href = '../index.html';
             } catch (error) {
-                console.error('Error al registrar asistencia:', error);
-                alert('Error al registrar asistencia');
+                console.error('Error al cerrar sesión:', error);
             }
         });
     });
