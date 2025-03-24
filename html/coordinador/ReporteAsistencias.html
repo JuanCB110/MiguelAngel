@@ -352,10 +352,21 @@
             
             // Obtener asistencias según los filtros
             if (maestroId) {
+                console.log("Buscando asistencias para maestro:", maestroId, "desde", inicio, "hasta", fin);
                 asistencias = await getAsistenciasByMaestroId(maestroId, inicio, fin);
+                console.log("Asistencias encontradas:", asistencias);
             } else {
                 // Si no hay maestro seleccionado, obtener todas las asistencias
+                console.log("Buscando todas las asistencias");
                 asistencias = await getAsistencias();
+                console.log("Total asistencias:", asistencias.length);
+                
+                // Ajustar las fechas para incluir todo el día
+                const inicioAjustado = new Date(inicio);
+                inicioAjustado.setHours(0, 0, 0, 0);
+                
+                const finAjustado = new Date(fin);
+                finAjustado.setHours(23, 59, 59, 999);
                 
                 // Filtrar por fecha
                 asistencias = asistencias.filter(a => {
@@ -368,21 +379,48 @@
                     } else if (a.fecha && a.fecha.seconds) {
                         fechaAsistencia = new Date(a.fecha.seconds * 1000);
                     } else {
+                        console.log("Formato de fecha no reconocido:", a.fecha);
                         return false;
                     }
                     
-                    return fechaAsistencia >= inicio && fechaAsistencia <= fin;
+                    const resultado = fechaAsistencia >= inicioAjustado && fechaAsistencia <= finAjustado;
+                    if (!resultado) {
+                        console.log("Fecha fuera de rango:", fechaAsistencia, "debe estar entre", inicioAjustado, "y", finAjustado);
+                    }
+                    return resultado;
                 });
+                
+                console.log("Asistencias filtradas por fecha:", asistencias.length);
             }
             
             // Ordenar por fecha y hora
             asistencias.sort((a, b) => {
-                const fechaA = a.fecha instanceof Date ? a.fecha : new Date(a.fecha);
-                const fechaB = b.fecha instanceof Date ? b.fecha : new Date(b.fecha);
+                let fechaA, fechaB;
+                
+                if (a.fecha instanceof Date) {
+                    fechaA = a.fecha;
+                } else if (typeof a.fecha === 'string') {
+                    fechaA = new Date(a.fecha);
+                } else if (a.fecha && a.fecha.seconds) {
+                    fechaA = new Date(a.fecha.seconds * 1000);
+                } else {
+                    fechaA = new Date(0); // fecha por defecto
+                }
+                
+                if (b.fecha instanceof Date) {
+                    fechaB = b.fecha;
+                } else if (typeof b.fecha === 'string') {
+                    fechaB = new Date(b.fecha);
+                } else if (b.fecha && b.fecha.seconds) {
+                    fechaB = new Date(b.fecha.seconds * 1000);
+                } else {
+                    fechaB = new Date(0); // fecha por defecto
+                }
+                
                 if (fechaA.getTime() !== fechaB.getTime()) {
                     return fechaA - fechaB;
                 }
-                return a.hora.localeCompare(b.hora);
+                return (a.hora || '').localeCompare(b.hora || '');
             });
             
             // Si no hay asistencias
@@ -415,7 +453,7 @@
                     <td>${asistencia.aula || 'N/A'}</td>
                     <td>
                         <span class="estado ${asistencia.asistio ? 'estado-asistio' : 'estado-falta'}">
-                            ${asistencia.estado || (asistencia.asistio ? 'Asistió' : 'Falta')}
+                            ${asistencia.asistio ? 'Asistió' : 'Falta'}
                         </span>
                     </td>
                     <td>${asistencia.registradoPorNombre || 'Sistema'}</td>
@@ -425,7 +463,7 @@
             
         } catch (error) {
             console.error('Error al generar reporte:', error);
-            reporteBody.innerHTML = '<tr><td colspan="7" class="loading">Error al generar reporte</td></tr>';
+            reporteBody.innerHTML = '<tr><td colspan="7" class="loading">Error al generar reporte: ' + error.message + '</td></tr>';
         }
     }
     

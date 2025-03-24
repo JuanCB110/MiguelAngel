@@ -33,7 +33,7 @@
                     </div>
 
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link active">
+                        <a href="#" class="nav__link active">
                             <i class='bx bx-grid-alt nav__icon'></i>
                             <span class="nav__text">Menu</span>
                         </a>
@@ -95,10 +95,23 @@
             import { checkAdminAuth, logout, getCurrentUser } from '../../bd/auth.js';
             
             // Verificar que el usuario sea administrador
-            const user = checkAdminAuth();
+            let user = null;
             
-            // Si hay un usuario y tiene permisos de administrador
-            if (user) {
+            // Función para verificar autenticación y redirigir si es necesario
+            async function verificarAutenticacion() {
+                user = await checkAdminAuth();
+                if (!user) {
+                    window.location.href = '../../index.html';
+                    return false;
+                }
+                return true;
+            }
+            
+            // Inicializar la página
+            document.addEventListener('DOMContentLoaded', async () => {
+                const autenticado = await verificarAutenticacion();
+                if (!autenticado) return;
+                
                 // Mostrar el nombre del usuario
                 document.getElementById('userName').textContent = user.name;
                 
@@ -112,7 +125,7 @@
                         alert('Error al cerrar sesión');
                     }
                 });
-            }
+            });
         </script>
         
         <script src="../../js/sidebar.js"></script>

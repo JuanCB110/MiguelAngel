@@ -31,12 +31,26 @@ export const getAsistenciasByMaestroId = async (maestroId, fechaInicio = null, f
         let q;
         
         if (fechaInicio && fechaFin) {
+            // Convertir las fechas a timestamp de Firestore
+            const fechaInicioTimestamp = Timestamp.fromDate(new Date(fechaInicio));
+            
+            // Ajustar fecha final para incluir todo el día
+            const fechaFinAjustada = new Date(fechaFin);
+            fechaFinAjustada.setHours(23, 59, 59, 999);
+            const fechaFinTimestamp = Timestamp.fromDate(fechaFinAjustada);
+            
+            console.log("Buscando con fechas:", {
+                maestroId,
+                fechaInicio: fechaInicioTimestamp,
+                fechaFin: fechaFinTimestamp
+            });
+            
             // Si se proporciona un rango de fechas, filtrar por maestro y rango
             q = query(
                 collection(db, 'asistencias'),
                 where('maestroId', '==', maestroId),
-                where('fecha', '>=', fechaInicio),
-                where('fecha', '<=', fechaFin)
+                where('fecha', '>=', fechaInicioTimestamp),
+                where('fecha', '<=', fechaFinTimestamp)
             );
         } else {
             // Si no, solo filtrar por maestro
@@ -91,10 +105,24 @@ export const getAsistenciasPorMaestroYFecha = async (maestroId, fecha) => {
 // Obtener asistencias por grupo y fecha
 export const getAsistenciasPorGrupoYFecha = async (grupoId, fecha) => {
     try {
+        // Convertir fecha a formato adecuado si es necesario
+        let fechaQuery = fecha;
+        if (typeof fecha === 'string') {
+            // Si es un string, convertir a objeto Date
+            const fechaObj = new Date(fecha);
+            // Y luego a timestamp de Firestore
+            fechaQuery = Timestamp.fromDate(fechaObj);
+        } else if (fecha instanceof Date) {
+            // Si ya es un objeto Date, convertir a timestamp de Firestore
+            fechaQuery = Timestamp.fromDate(fecha);
+        }
+        
+        console.log("Buscando asistencias para grupo:", grupoId, "fecha:", fechaQuery);
+        
         const q = query(
             collection(db, 'asistencias'),
             where('grupoId', '==', grupoId),
-            where('fecha', '==', fecha)
+            where('fecha', '==', fechaQuery)
         );
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => ({
@@ -110,12 +138,30 @@ export const getAsistenciasPorGrupoYFecha = async (grupoId, fecha) => {
 // Registrar nueva asistencia
 export const registrarAsistencia = async (asistenciaData) => {
     try {
+        // Asegurarse de que fecha sea un Timestamp
+        let fechaAsistencia = asistenciaData.fecha;
+        if (!(fechaAsistencia instanceof Timestamp)) {
+            if (fechaAsistencia instanceof Date) {
+                fechaAsistencia = Timestamp.fromDate(fechaAsistencia);
+            } else if (typeof fechaAsistencia === 'string') {
+                fechaAsistencia = Timestamp.fromDate(new Date(fechaAsistencia));
+            }
+        }
+        
+        // Crear el objeto de datos con la fecha correcta
+        const datosNormalizados = {
+            ...asistenciaData,
+            fecha: fechaAsistencia
+        };
+        
+        console.log("Registrando asistencia con datos:", datosNormalizados);
+        
         // Verificar si ya existe una asistencia para ese maestro en esa fecha y hora
         const q = query(
             collection(db, 'asistencias'),
-            where('maestroId', '==', asistenciaData.maestroId),
-            where('fecha', '==', asistenciaData.fecha),
-            where('hora', '==', asistenciaData.hora)
+            where('maestroId', '==', datosNormalizados.maestroId),
+            where('fecha', '==', datosNormalizados.fecha),
+            where('hora', '==', datosNormalizados.hora)
         );
         
         const querySnapshot = await getDocs(q);
@@ -124,17 +170,17 @@ export const registrarAsistencia = async (asistenciaData) => {
             // Si ya existe, actualizar en lugar de crear uno nuevo
             const docRef = doc(db, 'asistencias', querySnapshot.docs[0].id);
             await updateDoc(docRef, {
-                ...asistenciaData,
-                updatedAt: new Date()
+                ...datosNormalizados,
+                updatedAt: Timestamp.fromDate(new Date())
             });
-            return { id: docRef.id, ...asistenciaData };
+            return { id: docRef.id, ...datosNormalizados };
         } else {
             // Si no existe, crear uno nuevo
             const docRef = await addDoc(collection(db, 'asistencias'), {
-                ...asistenciaData,
-                createdAt: new Date()
+                ...datosNormalizados,
+                createdAt: Timestamp.fromDate(new Date())
             });
-            return { id: docRef.id, ...asistenciaData };
+            return { id: docRef.id, ...datosNormalizados };
         }
     } catch (error) {
         console.error('Error al registrar asistencia:', error);

@@ -62,6 +62,38 @@
             
             <br><br>
             
+            <div class="form-usuarios">
+                <h2>Registrar Mi Asistencia</h2>
+                <form id="form-asistencia">
+                    <div class="form-group">
+                        <label for="fecha-registro">Fecha</label>
+                        <input type="date" id="fecha-registro" name="fecha" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hora-select">Clase</label>
+                        <select id="hora-select" name="hora" required>
+                            <option value="">Seleccione una clase</option>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="aula-input">Aula</label>
+                        <input type="text" id="aula-input" name="aula" placeholder="Actualizar aula si es necesario">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="grupo-input">Grupo</label>
+                        <input type="text" id="grupo-input" name="grupo" placeholder="Actualizar grupo si es necesario">
+                    </div>
+                    
+                    <button type="submit" class="boton-global">Registrar Asistencia</button>
+                </form>
+            </div>
+            
+            <br><br>
+            
             <div id="asistencias" class="asistencias-container">
                 <h2>Mis Asistencias</h2>
                 
@@ -123,7 +155,7 @@
         try {
             const user = getCurrentUser();
             if (!user) {
-                window.location.href = '../index.html';
+                window.location.href = '../../index.html';
                 return;
             }
             
@@ -134,6 +166,10 @@
             
             // Cargar asistencias
             await cargarAsistencias(user.docId);
+            
+            // Establecer fecha actual en el formulario
+            const hoy = new Date();
+            document.getElementById('fecha-registro').value = hoy.toISOString().split('T')[0];
         } catch (error) {
             console.error('Error al cargar información del maestro:', error);
         }
@@ -145,12 +181,16 @@
             const horarios = await getHorariosByMaestroId(maestroId);
             const materias = await getMaterias();
             const tabla = document.querySelector('.horario-ver table');
+            const horaSelect = document.getElementById('hora-select');
             
             // Limpiar tabla excepto encabezados
             const filas = tabla.querySelectorAll('tr');
             for (let i = filas.length - 1; i >= 2; i--) {
                 tabla.removeChild(filas[i]);
             }
+            
+            // Limpiar select de horas
+            horaSelect.innerHTML = '<option value="">Seleccione una clase</option>';
             
             // Mostrar mensaje si no hay horarios
             if (horarios.length === 0) {
@@ -172,9 +212,24 @@
                     <td>${horario.grupo || 'No especificado'}</td>
                 `;
                 tabla.appendChild(tr);
+                
+                // Agregar opción al select para registro de asistencia
+                const option = document.createElement('option');
+                option.value = JSON.stringify({
+                    hora: `${horario.horaInicio} - ${horario.horaFin}`,
+                    materiaId: horario.materiaId,
+                    materia: materia ? materia.nombre : 'N/A',
+                    aula: horario.aula,
+                    dia: horario.dia,
+                    grupo: horario.grupo,
+                    grupoId: horario.grupoId
+                });
+                option.textContent = `${horario.horaInicio} - ${horario.horaFin} | ${materia ? materia.nombre : 'N/A'} | ${horario.grupo || ''}`;
+                horaSelect.appendChild(option);
             });
         } catch (error) {
             console.error('Error al cargar horario:', error);
+            document.querySelector('.horario-ver table').innerHTML += '<tr><td colspan="5">Error al cargar horario</td></tr>';
         }
     }
     
@@ -229,9 +284,113 @@
         }
     }
     
+    // Función para cargar datos de la clase seleccionada en el formulario
+    function cargarDatosClase() {
+        const horarioSeleccionado = document.getElementById('hora-select').value;
+        if (!horarioSeleccionado) {
+            document.getElementById('aula-input').value = '';
+            document.getElementById('grupo-input').value = '';
+            return;
+        }
+        
+        const horarioInfo = JSON.parse(horarioSeleccionado);
+        document.getElementById('aula-input').value = horarioInfo.aula || '';
+        document.getElementById('grupo-input').value = horarioInfo.grupo || '';
+    }
+
+    // Función para registrar asistencia del maestro
+    async function registrarMiAsistencia(event) {
+        event.preventDefault();
+        
+        try {
+            const user = getCurrentUser();
+            if (!user) {
+                alert('Debe iniciar sesión para registrar su asistencia');
+                return;
+            }
+            
+            const fechaRegistro = document.getElementById('fecha-registro').value;
+            const horarioSeleccionado = document.getElementById('hora-select').value;
+            const aulaActualizada = document.getElementById('aula-input').value;
+            const grupoActualizado = document.getElementById('grupo-input').value;
+            
+            if (!fechaRegistro || !horarioSeleccionado) {
+                alert('Debe seleccionar fecha y clase');
+                return;
+            }
+            
+            // Parsear la información del horario seleccionado
+            const horarioInfo = JSON.parse(horarioSeleccionado);
+            
+            // Verificar si ya existe un registro para esta fecha y hora
+            const asistencias = await getAsistenciasByMaestroId(user.docId);
+            const yaRegistrado = asistencias.some(a => {
+                // Convertir fechas para comparación
+                let fechaA = a.fecha;
+                if (a.fecha && a.fecha.seconds) {
+                    fechaA = new Date(a.fecha.seconds * 1000).toISOString().split('T')[0];
+                } else if (a.fecha instanceof Date) {
+                    fechaA = a.fecha.toISOString().split('T')[0];
+                }
+                
+                return fechaA === fechaRegistro && a.hora === horarioInfo.hora;
+            });
+            
+            if (yaRegistrado) {
+                if (!confirm('Ya existe un registro para esta fecha y hora. ¿Desea actualizarlo?')) {
+                    return;
+                }
+            }
+            
+            // Crear objeto de asistencia
+            const asistenciaData = {
+                maestroId: user.docId,
+                nombreMaestro: user.name,
+                materiaId: horarioInfo.materiaId,
+                materia: horarioInfo.materia,
+                fecha: fechaRegistro,
+                hora: horarioInfo.hora,
+                aula: aulaActualizada || horarioInfo.aula,
+                grupo: grupoActualizado || horarioInfo.grupo,
+                grupoId: horarioInfo.grupoId,
+                asistio: true, // El maestro registra su propia asistencia
+                estado: 'Asistió',
+                registradoPor: user.docId,
+                registradoPorNombre: user.name,
+                autoRegistro: true, // Indicar que el maestro registró su propia asistencia
+                cambioAula: aulaActualizada !== horarioInfo.aula && aulaActualizada !== '',
+                cambioGrupo: grupoActualizado !== horarioInfo.grupo && grupoActualizado !== ''
+            };
+            
+            // Enviar registro
+            await registrarAsistencia(asistenciaData);
+            alert('Asistencia registrada correctamente');
+            
+            // Recargar asistencias
+            await cargarAsistencias(user.docId);
+            
+            // Limpiar formulario
+            document.getElementById('hora-select').value = '';
+            document.getElementById('aula-input').value = '';
+            document.getElementById('grupo-input').value = '';
+
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('Error al registrar asistencia:', error);
+            alert('Error al registrar asistencia: ' + error.message);
+        }
+    }
+    
     // Eventos
     document.addEventListener('DOMContentLoaded', () => {
         cargarInformacionMaestro();
+        
+        // Formulario de registro de asistencia
+        document.getElementById('form-asistencia').addEventListener('submit', registrarMiAsistencia);
+        
+        // Evento al cambiar la clase seleccionada
+        document.getElementById('hora-select').addEventListener('change', cargarDatosClase);
         
         // Filtrar asistencias por fecha
         document.getElementById('btnFiltrar').addEventListener('click', () => {
@@ -303,6 +462,41 @@
 .estado.falta {
     background: #ffe6e6;
     color: #cc0000;
+}
+
+/* Estilos para el formulario de registro de asistencia */
+.form-usuarios {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.form-usuarios h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+    font-weight: 500;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
 }
 </style>
 </html>

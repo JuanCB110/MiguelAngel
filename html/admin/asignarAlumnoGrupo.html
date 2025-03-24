@@ -95,7 +95,7 @@
                     </div>
     
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link active">
+                        <a href="menuAdmin.html" class="nav__link">
                             <i class='bx bx-grid-alt nav__icon'></i>
                             <span class="nav__text">Menu</span>
                         </a>
@@ -132,7 +132,7 @@
                             <i class='bx bx-user-check nav__icon'></i>
                             <span class="nav__text">Jefes de grupo</span>
                         </a>
-                        <a href="asignarAlumnoGrupo.html" class="nav__link">
+                        <a href="#" class="nav__link active">
                             <i class='bx bx-user-plus nav__icon'></i>
                             <span class="nav__text">Alumnos</span>
                         </a>
@@ -177,17 +177,28 @@
                             <option value="">Cargando grupos...</option>
                         </select>
                     </div>
+
+                    <div class="form-group">
+                        <label for="aula-select">Seleccione un aula</label>
+                        <select id="aula-select">
+                            <option value="">Cargando aulas...</option>
+                        </select>
+                    </div>
                     
                     <button id="btn-asignar" class="boton-global">Asignar</button>
                 </div>
             </div>
         </section>
+
+        <!-- Elemento para mostrar notificaciones -->
+        <div id="notificacion" class="notificacion" style="display: none;"></div>
     </body>
 
 <script src="../../js/sidebar.js"></script>
 <script type="module">
     import { checkAdminAuth, getAlumnos, asignarAlumnoGrupo, logout } from '../../bd/auth.js';
-    import { getGrupos } from '../../bd/grupos.js';
+    import { getGrupos, getGrupoPorId, actualizarGrupo } from '../../bd/grupos.js';
+    import { getAulas, getAulaPorId } from '../../bd/aulas.js';
     
     // Referencias a elementos DOM
     const listaAlumnos = document.getElementById('lista-alumnos');
@@ -196,12 +207,15 @@
     const closeModal = document.querySelector('.close');
     const alumnoSeleccionado = document.getElementById('alumno-seleccionado');
     const grupoSelect = document.getElementById('grupo-select');
+    const aulaSelect = document.getElementById('aula-select');
     const btnAsignar = document.getElementById('btn-asignar');
     const logoutLink = document.getElementById('logout-link');
+    const notificacion = document.getElementById('notificacion');
     
     // Variables globales
     let alumnos = [];
     let grupos = [];
+    let aulas = [];
     let alumnoActual = null;
     let currentUser = null;
     
@@ -217,10 +231,11 @@
             // Mostrar mensaje de carga
             listaAlumnos.innerHTML = '<div class="alumno-card"><h3>Cargando...</h3><p>Obteniendo datos...</p></div>';
             
-            // Obtener alumnos y grupos
-            [alumnos, grupos] = await Promise.all([
+            // Obtener alumnos de grupo, grupos y aulas
+            [alumnos, grupos, aulas] = await Promise.all([
                 getAlumnos(),
-                getGrupos()
+                getGrupos(),
+                getAulas()
             ]);
             
             // Mostrar alumnos
@@ -228,6 +243,9 @@
             
             // Cargar grupos en el select
             cargarGrupos(grupos);
+            
+            // Cargar aulas en el select
+            cargarAulas(aulas);
         } catch (error) {
             console.error('Error al cargar datos:', error);
             listaAlumnos.innerHTML = '<div class="alumno-card"><h3>Error</h3><p>No se pudieron cargar los datos</p></div>';
@@ -257,6 +275,8 @@
                 <p class="${grupoAsignado ? 'grupo-asignado' : 'sin-grupo'}">
                     <strong>Grupo:</strong> ${grupoAsignado ? grupoAsignado.numeroGrupo : 'Sin asignar'}
                 </p>
+                ${grupoAsignado && grupoAsignado.aulaId ? 
+                    `<p><strong>Aula:</strong> ${obtenerNombreAula(grupoAsignado.aulaId)}</p>` : ''}
                 <button class="boton-asignar" data-alumno-id="${alumno.id}" data-alumno-email="${alumno.email}" data-alumno-name="${alumno.name}">
                     ${grupoAsignado ? 'Reasignar grupo' : 'Asignar grupo'}
                 </button>
@@ -275,6 +295,12 @@
                 abrirModalAsignar(alumnoId, alumnoName, alumnoEmail);
             });
         });
+    }
+
+    // Obtener nombre de aula por ID
+    function obtenerNombreAula(aulaId) {
+        const aula = aulas.find(a => a.id === aulaId);
+        return aula ? aula.nombre : 'Desconocida';
     }
     
     // Filtrar alumnos
@@ -301,8 +327,37 @@
         gruposLista.forEach(grupo => {
             const option = document.createElement('option');
             option.value = grupo.id;
-            option.textContent = `${grupo.numeroGrupo} - ${grupo.carrera || ''} (${grupo.aula || 'Sin aula'})`;
+            option.textContent = `Grupo ${grupo.numeroGrupo}`;
             grupoSelect.appendChild(option);
+        });
+
+        // Al cambiar el grupo, intentar cargar su aula si tiene
+        grupoSelect.addEventListener('change', async function() {
+            const grupoId = this.value;
+            if (grupoId) {
+                try {
+                    const grupo = await getGrupoPorId(grupoId);
+                    if (grupo && grupo.aulaId) {
+                        aulaSelect.value = grupo.aulaId;
+                    } else {
+                        aulaSelect.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error al obtener datos del grupo:', error);
+                }
+            }
+        });
+    }
+    
+    // Cargar aulas en el select
+    function cargarAulas(aulasLista) {
+        aulaSelect.innerHTML = '<option value="">Seleccione un aula</option>';
+        
+        aulasLista.forEach(aula => {
+            const option = document.createElement('option');
+            option.value = aula.id;
+            option.textContent = aula.nombre || `Aula ${aula.numeroAula || aula.id}`;
+            aulaSelect.appendChild(option);
         });
     }
     
@@ -314,18 +369,21 @@
         // Encontrar el grupo actual (si existe)
         const alumno = alumnos.find(a => a.id === alumnoId);
         if (alumno && alumno.grupoId) {
+            const grupoActual = grupos.find(g => g.id === alumno.grupoId);
             grupoSelect.value = alumno.grupoId;
+            aulaSelect.value = grupoActual?.aulaId || '';
         } else {
             grupoSelect.value = '';
+            aulaSelect.value = '';
         }
         
         modal.style.display = 'block';
     }
     
-    // Asignar grupo al alumno
+    // Asignar grupo y aula
     async function realizarAsignacion() {
         if (!alumnoActual || !grupoSelect.value) {
-            alert('Debe seleccionar un grupo');
+            mostrarMensaje('Debe seleccionar un grupo', false);
             return;
         }
         
@@ -333,24 +391,64 @@
             btnAsignar.disabled = true;
             btnAsignar.textContent = 'Asignando...';
             
+            // Primero asignar el jefe al grupo
             const resultado = await asignarAlumnoGrupo(alumnoActual.email, grupoSelect.value);
             
             if (resultado.success) {
-                alert('Grupo asignado correctamente');
+                // Si se asignó correctamente el jefe, actualizar el aula si se seleccionó
+                if (aulaSelect.value) {
+                    try {
+                        // Asegurarnos que aulaId tenga un valor válido
+                        const datosActualizacion = { 
+                            aulaId: aulaSelect.value || null 
+                        };
+                        
+                        await actualizarGrupo(grupoSelect.value, datosActualizacion);
+                        
+                        mostrarMensaje('Grupo y aula asignados correctamente', true);
+                    } catch (error) {
+                        console.error('Error al asignar aula:', error);
+                        mostrarMensaje('Se asignó el grupo pero hubo un error al asignar el aula', false);
+                    }
+                } else {
+                    // Si no hay aula seleccionada, asegurarse de que el campo aulaId sea null explícitamente
+                    try {
+                        await actualizarGrupo(grupoSelect.value, { aulaId: null });
+                        mostrarMensaje('Grupo asignado correctamente', true);
+                    } catch (error) {
+                        console.error('Error al limpiar el aula:', error);
+                        mostrarMensaje('Grupo asignado, pero hubo un error al actualizar la información del aula', false);
+                    }
+                }
+                
                 modal.style.display = 'none';
                 
-                // Actualizar la lista de alumnos
+                // Actualizar la lista de jefes y los grupos
                 await cargarDatos();
             } else {
-                alert(`Error al asignar grupo: ${resultado.error}`);
+                mostrarMensaje(`Error al asignar grupo: ${resultado.error}`, false);
             }
         } catch (error) {
-            console.error('Error al asignar grupo:', error);
-            alert('Error al asignar grupo');
+            console.error('Error al asignar grupo/aula:', error);
+            mostrarMensaje('Error al realizar la asignación', false);
         } finally {
             btnAsignar.disabled = false;
             btnAsignar.textContent = 'Asignar';
         }
+    }
+
+    // Mostrar mensaje de notificación
+    function mostrarMensaje(mensaje, esExito) {
+        notificacion.textContent = mensaje;
+        notificacion.className = esExito ? 
+            'notificacion notificacion-exito' : 
+            'notificacion notificacion-error';
+        notificacion.style.display = 'block';
+        
+        // Ocultar la notificación después de 5 segundos
+        setTimeout(() => {
+            notificacion.style.display = 'none';
+        }, 5000);
     }
     
     // Eventos
@@ -379,7 +477,7 @@
             e.preventDefault();
             try {
                 await logout();
-                window.location.href = '../index.html';
+                window.location.href = '../../index.html';
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
             }
@@ -422,6 +520,39 @@
     .close:focus {
         color: black;
         text-decoration: none;
+    }
+
+    /* Estilos para las notificaciones */
+    .notificacion {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        z-index: 1001;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .notificacion-exito {
+        background-color: #28a745;
+    }
+
+    .notificacion-error {
+        background-color: #dc3545;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 </style>
 </html> 

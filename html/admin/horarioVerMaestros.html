@@ -21,11 +21,11 @@
                     </div>
     
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link active">
+                        <a href="menuAdmin.html" class="nav__link">
                             <i class='bx bx-grid-alt nav__icon'></i>
                             <span class="nav__text">Menu</span>
                         </a>
-                        <a href="horarioAdmin.html" class="nav__link">
+                        <a href="#" class="nav__link active>
                             <i class='bx bx-calendar-star nav__icon'></i>
                             <span class="nav__text">Horarios</span>
                         </a>
@@ -64,7 +64,7 @@
                         </a>
                     </ul>
                 </div>
-                <a href="../../index.html" class="nav__link">           
+                <a href="#" class="nav__link" id="btnLogout">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
@@ -141,107 +141,135 @@
     import { getHorariosByMaestroId, eliminarHorario } from '../../bd/horarios.js';
     import { getMaestros } from '../../bd/maestros.js';
     import { registrarAsistencia } from '../../bd/asistencias.js';
-    import { checkAdminAuth } from '../../bd/auth.js';
+    import { checkAdminAuth, logout } from '../../bd/auth.js';
     import { getMaterias } from '../../bd/materias.js';
     
-    // Verificar autenticación
-    checkAdminAuth();
+    // Verificar que el usuario sea administrador
+    let user = null;
     
-    // Cargar maestros en el select
-    async function cargarMaestros() {
-        try {
-            const maestros = await getMaestros();
-            const selectMaestro = document.querySelector('select[name="maestro"]');
-            selectMaestro.innerHTML = '';
-            
-            maestros.forEach(maestro => {
-                const option = document.createElement('option');
-                option.value = maestro.id;
-                option.textContent = maestro.name || maestro.nombre;
-                selectMaestro.appendChild(option);
-            });
-            
-            // Cargar horario del primer maestro
-            if (maestros.length > 0) {
-                cargarHorario(maestros[0].id);
-            }
-        } catch (error) {
-            console.error('Error al cargar maestros:', error);
+    // Función para verificar autenticación y redirigir si es necesario
+    async function verificarAutenticacion() {
+        user = await checkAdminAuth();
+        if (!user) {
+            window.location.href = '../../index.html';
+            return false;
         }
+        return true;
     }
     
-    // Cargar horario de un maestro
-    async function cargarHorario(maestroId) {
-        try {
-            const horarios = await getHorariosByMaestroId(maestroId);
-            const materias = await getMaterias();
-            const tablaHorario = document.querySelector('.horario-ver table');
-            
-            // Actualizar título
-            const maestros = await getMaestros();
-            const maestro = maestros.find(m => m.id === maestroId);
-            if (maestro) {
-                tablaHorario.querySelector('tr:first-child th').textContent = `HORARIO DE ${maestro.name || maestro.nombre}`;
-            }
-            
-            // Limpiar tabla excepto encabezados (las primeras 2 filas)
-            const tbody = tablaHorario.querySelector('tbody') || tablaHorario;
-            const filas = tbody.querySelectorAll('tr');
-            
-            // Si hay más de 2 filas (los encabezados), eliminar desde la tercera en adelante
-            if (filas.length > 2) {
-                // Comenzamos desde la tercera fila (índice 2) y eliminamos hacia abajo
-                // Importante: debemos trabajar con una copia de la NodeList porque estamos modificándola
-                Array.from(filas).slice(2).forEach(fila => {
-                    if (fila.parentNode) {
-                        fila.parentNode.removeChild(fila);
-                    }
-                });
-            }
-            
-            // Mostrar mensaje si no hay horarios
-            if (horarios.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="3">No hay horarios asignados para este maestro</td>';
-                tbody.appendChild(tr);
-                return;
-            }
-            
-            // Agregar horarios a la tabla
-            horarios.forEach(horario => {
-                const materia = materias.find(m => m.id === horario.materiaId);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${horario.horaInicio} - ${horario.horaFin}</td>
-                    <td>${materia ? materia.nombre : 'N/A'}</td>
-                    <td>${horario.aula}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-            
-            // Actualizar botón eliminar
-            const btnEliminar = document.querySelector('.boton-global-rojo');
-            btnEliminar.onclick = async () => {
-                if (confirm('¿Está seguro de eliminar este horario?')) {
-                    try {
-                        if (horarios.length > 0) {
-                            await eliminarHorario(horarios[0].id);
-                            alert('Horario eliminado correctamente');
-                            cargarHorario(maestroId);
-                        }
-                    } catch (error) {
-                        console.error('Error al eliminar horario:', error);
-                        alert('Error al eliminar horario');
-                    }
+    // Inicializar la página
+    document.addEventListener('DOMContentLoaded', async () => {
+        const autenticado = await verificarAutenticacion();
+        if (!autenticado) return;
+        
+        // Configurar el botón de cierre de sesión
+        const btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const result = await logout();
+                if (result.success) {
+                    window.location.href = '../../index.html';
+                } else {
+                    alert('Error al cerrar sesión');
                 }
-            };
-        } catch (error) {
-            console.error('Error al cargar horario:', error);
+            });
         }
-    }
-    
-    // Eventos
-    document.addEventListener('DOMContentLoaded', () => {
+        
+        // Cargar maestros en el select
+        async function cargarMaestros() {
+            try {
+                const maestros = await getMaestros();
+                const selectMaestro = document.querySelector('select[name="maestro"]');
+                selectMaestro.innerHTML = '';
+                
+                maestros.forEach(maestro => {
+                    const option = document.createElement('option');
+                    option.value = maestro.id;
+                    option.textContent = maestro.name || maestro.nombre;
+                    selectMaestro.appendChild(option);
+                });
+                
+                // Cargar horario del primer maestro
+                if (maestros.length > 0) {
+                    cargarHorario(maestros[0].id);
+                }
+            } catch (error) {
+                console.error('Error al cargar maestros:', error);
+            }
+        }
+        
+        // Cargar horario de un maestro
+        async function cargarHorario(maestroId) {
+            try {
+                const horarios = await getHorariosByMaestroId(maestroId);
+                const materias = await getMaterias();
+                const tablaHorario = document.querySelector('.horario-ver table');
+                
+                // Actualizar título
+                const maestros = await getMaestros();
+                const maestro = maestros.find(m => m.id === maestroId);
+                if (maestro) {
+                    tablaHorario.querySelector('tr:first-child th').textContent = `HORARIO DE ${maestro.name || maestro.nombre}`;
+                }
+                
+                // Limpiar tabla excepto encabezados (las primeras 2 filas)
+                const tbody = tablaHorario.querySelector('tbody') || tablaHorario;
+                const filas = tbody.querySelectorAll('tr');
+                
+                // Si hay más de 2 filas (los encabezados), eliminar desde la tercera en adelante
+                if (filas.length > 2) {
+                    // Comenzamos desde la tercera fila (índice 2) y eliminamos hacia abajo
+                    // Importante: debemos trabajar con una copia de la NodeList porque estamos modificándola
+                    Array.from(filas).slice(2).forEach(fila => {
+                        if (fila.parentNode) {
+                            fila.parentNode.removeChild(fila);
+                        }
+                    });
+                }
+                
+                // Mostrar mensaje si no hay horarios
+                if (horarios.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="3">No hay horarios asignados para este maestro</td>';
+                    tbody.appendChild(tr);
+                    return;
+                }
+                
+                // Agregar horarios a la tabla
+                horarios.forEach(horario => {
+                    const materia = materias.find(m => m.id === horario.materiaId);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${horario.horaInicio} - ${horario.horaFin}</td>
+                        <td>${materia ? materia.nombre : 'N/A'}</td>
+                        <td>${horario.aula}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                // Actualizar botón eliminar
+                const btnEliminar = document.querySelector('.boton-global-rojo');
+                btnEliminar.onclick = async () => {
+                    if (confirm('¿Está seguro de eliminar este horario?')) {
+                        try {
+                            if (horarios.length > 0) {
+                                await eliminarHorario(horarios[0].id);
+                                alert('Horario eliminado correctamente');
+                                cargarHorario(maestroId);
+                            }
+                        } catch (error) {
+                            console.error('Error al eliminar horario:', error);
+                            alert('Error al eliminar horario');
+                        }
+                    }
+                };
+            } catch (error) {
+                console.error('Error al cargar horario:', error);
+            }
+        }
+        
+        // Eventos
         cargarMaestros();
         
         // Cambio de maestro en el select

@@ -122,7 +122,7 @@ export function checkAuth() {
     console.warn('Sesión no válida o expirada. Redirigiendo al login...');
     // Limpiar cualquier dato corrupto de la sesión
     sessionStorage.removeItem('user');
-    window.location.href = '../index.html';
+    window.location.href = '../../index.html';
     return null;
   }
   
@@ -134,7 +134,7 @@ export function checkAdminAuth() {
   const user = checkAuth();
   if (user && user.role !== 'Administrador') {
     alert('No tienes permisos para acceder a esta página');
-    window.location.href = '../index.html';
+    window.location.href = '../../index.html';
     return null;
   }
   return user;
@@ -145,7 +145,7 @@ export function checkCoordinadorAuth() {
   const user = checkAuth();
   if (user && user.role !== 'Coordinador' && user.role !== 'Administrador') {
     alert('No tienes permisos para acceder a esta página');
-    window.location.href = '../index.html';
+    window.location.href = '../../index.html';
     return null;
   }
   return user;
@@ -156,7 +156,7 @@ export function checkJefeGrupoAuth() {
   const user = checkAuth();
   if (user && user.role !== 'Jefe de grupo' && user.role !== 'Administrador') {
     alert('No tienes permisos para acceder a esta página');
-    window.location.href = '../index.html';
+    window.location.href = '../../index.html';
     return null;
   }
   return user;
@@ -167,7 +167,7 @@ export function checkAlumnoAuth() {
   const user = checkAuth();
   if (user && user.role !== 'Alumno' && user.role !== 'Administrador') {
     alert('No tienes permisos para acceder a esta página');
-    window.location.href = '../index.html';
+    window.location.href = '../../index.html';
     return null;
   }
   return user;

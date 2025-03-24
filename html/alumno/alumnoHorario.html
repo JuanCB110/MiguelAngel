@@ -131,15 +131,20 @@
             <h2 class="horario-header" id="grupo-header">HORARIO DEL GRUPO</h2>
             <div class="horario-ver">
                 <table id="tabla-horario">
-                    <tr>
-                        <th>Hora</th>
-                        <th>Materia</th>
-                        <th>Maestro</th>
-                        <th>Estado</th>
-                    </tr>
-                    <tr>
-                        <td colspan="4" class="loading">Cargando horario del grupo...</td>
-                    </tr>
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Materia</th>
+                            <th>Maestro</th>
+                            <th>Aula</th>
+                            <th>Grupo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="loading">Cargando horario del grupo...</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
             
@@ -153,8 +158,8 @@
 <script type="module">
     import { getHorarioPorGrupo } from '../../bd/horarios.js';
     import { getGrupoPorId } from '../../bd/grupos.js';
-    import { getAsistenciasPorGrupoYFecha } from '../../bd/asistencias.js';
-    import { checkAlumnoAuth, getCurrentUser, logout } from '../../bd/auth.js';
+    import { getAulaPorId } from '../../bd/aulas.js';
+    import { checkAuth, getCurrentUser, getUserById, logout } from '../../bd/auth.js';
     
     // Referencias a elementos DOM
     const welcomeMessage = document.getElementById('welcome-message');
@@ -178,27 +183,29 @@
     async function cargarInformacionAlumno() {
         try {
             // Usar la función específica para alumnos
-            currentUser = checkAlumnoAuth();
+            currentUser = getCurrentUser();
+            console.log("Usuario actual", currentUser);
             
             if (!currentUser) {
                 return; // La función ya redirige si no tiene permiso
             }
             
             // Obtener el grupo asociado al alumno (esto dependerá de tu modelo de datos)
-            grupoId = currentUser.grupoId;
+            grupoId = await getUserById(currentUser.docId);
+            console.log("Grupo actual ID: ", grupoId.grupoId);
             
             if (!grupoId) {
                 alert('No tienes un grupo asignado. Contacta al administrador.');
                 return;
             }
             
-            welcomeMessage.textContent = `Bienvenido ${currentUser.name || currentUser.displayName || currentUser.email}`;
-            
             // Actualizar información del grupo
-            const grupo = await getGrupoPorId(grupoId);
+            const grupo = await getGrupoPorId(grupoId.grupoId);
+            const aula = await getAulaPorId(grupo.aulaId);
+            console.log("Grupo actual numero:", grupo.numeroGrupo, "Y Aula actual numero:", aula.nombre);
             if (grupo) {
                 numeroGrupo.textContent = grupo.numeroGrupo || grupo.nombre || "Grupo";
-                grupoHeader.textContent = `HORARIO: ${grupo.numeroGrupo || grupo.nombre} - ${grupo.carrera || ''} - AULA: ${grupo.aula || 'N/A'}`;
+                grupoHeader.textContent = `HORARIO: ${grupo.numeroGrupo || grupo.nombre} - ${grupo.carrera || ''} - AULA: ${aula.nombre || 'N/A'}`;
                 
                 // Cargar horario del grupo
                 await cargarHorario();
@@ -217,11 +224,11 @@
         
         try {
             // Mostrar mensaje de carga
-            const tbody = tablaHorario.querySelector('tbody') || tablaHorario;
-            tbody.innerHTML = '<tr><td colspan="4" class="loading">Cargando horario del grupo...</td></tr>';
+            const tbody = tablaHorario.querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="5" class="loading">Cargando horario del grupo...</td></tr>';
             
             // Obtener horarios
-            horarioGrupo = await getHorarioPorGrupo(grupoId);
+            horarioGrupo = await getHorarioPorGrupo(grupoId.grupoId);
             console.log("Horarios obtenidos:", horarioGrupo);
             
             // Limpiar tabla
@@ -229,43 +236,34 @@
             
             // Si no hay horarios
             if (horarioGrupo.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="loading">No hay horarios registrados para este grupo</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="loading">No hay horarios registrados para este grupo</td></tr>';
                 return;
             }
             
-            // Verificar asistencias del día actual
-            const asistenciasHoy = await getAsistenciasPorGrupoYFecha(grupoId, fechaActual.value);
+            // Obtener información del grupo y aula
+            const grupo = await getGrupoPorId(grupoId.grupoId);
+            let aula = null;
+            if (grupo && grupo.aulaId) {
+                aula = await getAulaPorId(grupo.aulaId);
+            }
             
             // Agregar horarios a la tabla
             horarioGrupo.forEach(horario => {
-                // Buscar si ya hay asistencia registrada para esta hora
-                const asistenciaRegistrada = asistenciasHoy.find(a => 
-                    a.hora === `${horario.horaInicio} - ${horario.horaFin}`
-                );
-                
-                // Determinar estado
-                let estadoHtml = '';
-                if (asistenciaRegistrada) {
-                    const estado = asistenciaRegistrada.asistio ? 'asistio' : 'falta';
-                    const textoEstado = asistenciaRegistrada.asistio ? 'Asistió' : 'Falta';
-                    estadoHtml = `<span class="estado ${estado}">${textoEstado}</span>`;
-                } else {
-                    estadoHtml = 'No registrado';
-                }
-                
                 // Agregar fila a la tabla
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${horario.horaInicio} - ${horario.horaFin}</td>
                     <td>${horario.materia || 'No asignada'}</td>
                     <td>${horario.nombreMaestro || 'No asignado'}</td>
-                    <td>${estadoHtml}</td>
+                    <td>${aula ? aula.nombre : 'No asignada'}</td>
+                    <td>${grupo ? grupo.numeroGrupo : 'No asignado'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         } catch (error) {
             console.error('Error al cargar horario:', error);
-            tablaHorario.innerHTML = '<tr><td colspan="4" class="loading">Error al cargar horario</td></tr>';
+            const tbody = tablaHorario.querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="5" class="loading">Error al cargar horario</td></tr>';
         }
     }
     
