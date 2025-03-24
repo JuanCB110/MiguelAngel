@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Horario Administrador</title>
     </head>
@@ -12,7 +12,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <span class="nav__logo-text">Checador</span>
                     </a>
     
@@ -31,7 +31,7 @@
                         </a>
                     </ul>
                 </div>
-                <a href="../index.html" class="nav__link">           
+                <a href="../../index.html" class="nav__link">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
@@ -56,25 +56,21 @@
                     </tr>
                     <tr>
                         <th>Hora</th>
-                        <th>Día</th>
                         <th>Materia</th>
                         <th>Grupo</th>
                         <th>Aula</th>
-                    </tr>
-                    <tr>
-                        <td colspan="5">Seleccione un maestro para ver su horario</td>
                     </tr>
                 </table>
             </div>
         </section>
     </body>
 
-<script src="../js/sidebar.js"></script>
-<script src="../js/barraOpciones.js"></script>
+<script src="../../js/sidebar.js"></script>
+<script src="../../js/barraOpciones.js"></script>
 <script type="module">
-    import { checkAuth } from '../bd/auth.js';
-    import { getMaestros } from '../bd/maestros.js';
-    import { getHorariosByMaestroId } from '../bd/horarios.js';
+    import { checkAuth } from '../../bd/auth.js';
+    import { getMaestros } from '../../bd/maestros.js';
+    import { getHorariosByMaestroId } from '../../bd/horarios.js';
     
     // Verificar autenticación
     checkAuth();
@@ -122,23 +118,31 @@
             const maestros = await getMaestros();
             const maestro = maestros.find(m => m.id === maestroId);
             if (maestro) {
-                tablaHorario.querySelector('tr:first-child th').textContent = `HORARIO DE ${maestro.nombre}`;
+                tablaHorario.querySelector('tr:first-child th').textContent = `HORARIO DE ${maestro.nombre || maestro.name}`;
             }
             
-            // Limpiar tabla excepto encabezados
+            // Eliminar filas existentes excepto encabezados (más seguro)
+            // Primero guardamos todas las filas que deben eliminarse
+            const filasAEliminar = [];
             const filas = tablaHorario.querySelectorAll('tr');
-            if (filas.length > 2) {
-                for (let i = filas.length - 1; i >= 2; i--) {
-                    tablaHorario.removeChild(filas[i]);
-                }
+            
+            // Solo recopilamos las filas a partir de la 3ra (índice 2)
+            for (let i = 2; i < filas.length; i++) {
+                filasAEliminar.push(filas[i]);
             }
+            
+            // Luego eliminamos cada fila de manera segura
+            filasAEliminar.forEach(fila => {
+                if (fila && fila.parentNode === tablaHorario) {
+                    tablaHorario.removeChild(fila);
+                }
+            });
             
             // Agregar horarios a la tabla
             horarios.forEach(horario => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${horario.horaInicio} - ${horario.horaFin}</td>
-                    <td>${horario.dia || 'No asignado'}</td>
                     <td>${horario.materia || 'No asignada'}</td>
                     <td>${horario.grupo || 'No asignado'}</td>
                     <td>${horario.aula || 'No asignada'}</td>
@@ -155,17 +159,26 @@
         } catch (error) {
             console.error('Error al cargar horario del maestro:', error);
             const tablaHorario = document.querySelector('.horario-ver table');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="5">Error al cargar el horario</td>`;
             
-            // Limpiar tabla excepto encabezados
+            // Eliminar filas existentes excepto encabezados (más seguro)
+            // Primero guardamos todas las filas que deben eliminarse
+            const filasAEliminar = [];
             const filas = tablaHorario.querySelectorAll('tr');
-            if (filas.length > 2) {
-                for (let i = filas.length - 1; i >= 2; i--) {
-                    tablaHorario.removeChild(filas[i]);
-                }
+            
+            // Solo recopilamos las filas a partir de la 3ra (índice 2)
+            for (let i = 2; i < filas.length; i++) {
+                filasAEliminar.push(filas[i]);
             }
             
+            // Luego eliminamos cada fila de manera segura
+            filasAEliminar.forEach(fila => {
+                if (fila && fila.parentNode === tablaHorario) {
+                    tablaHorario.removeChild(fila);
+                }
+            });
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="5">Error al cargar el horario</td>`;
             tablaHorario.appendChild(tr);
         }
     }

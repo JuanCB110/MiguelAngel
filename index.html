@@ -14,7 +14,6 @@
         <a href="#">Olvidé mi contraseña</a>
         <button type="submit">Acceder</button>
         <p id="error-message" style="color: red; display: none;"></p>
-        <p>Chambeando <a href="html/usuariosAdminAñadir.html">registrarse</a></p>
     </form>
 
     <!-- Firebase App (the core Firebase SDK) -->
@@ -40,15 +39,15 @@
                     console.log("Rol del usuario:", user.role);
                     
                     if (user.role === 'Administrador') {
-                        window.location.href = 'html/menuAdmin.html';
+                        window.location.href = 'html/admin/menuAdmin.html';
                     } else if (user.role === 'Maestro') {
-                        window.location.href = 'html/MaestroHorario.html';
+                        window.location.href = 'html/maestro/MaestroHorario.html';
                     } else if (user.role === 'Coordinador') {
-                        window.location.href = 'html/ChecadorHorario.html';
+                        window.location.href = 'html/coordinador/ChecadorHorario.html';
                     } else if (user.role === 'Jefe de grupo') {
-                        window.location.href = 'html/JefeHorario.html';
+                        window.location.href = 'html/jefe-de-grupo/JefeHorario.html';
                     } else if (user.role === 'Alumno') {
-                        window.location.href = 'html/menuAlumno.html';
+                        window.location.href = 'html/alumno/alumnoHorario.html';
                     } else {
                         // Si no coincide con ningún rol conocido
                         alert('Rol no reconocido: ' + user.role);

@@ -3,28 +3,16 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-        <title>Menu Administrador</title>
-        <!-- Script de verificación de autenticación inmediata -->
-        <script type="module">
-            import { checkAdminAuth } from '../bd/auth.js';
-            // Verificar autenticación inmediatamente
-            document.addEventListener('DOMContentLoaded', () => {
-                const user = checkAdminAuth();
-                if (!user) {
-                    // Si no hay usuario autenticado, la función checkAdminAuth ya redirige
-                    throw new Error('No autorizado');
-                }
-            });
-        </script>
+        <title>Usuarios Administrador</title>
     </head>
     <body id="body">
         <div class="l-navbar" id="navbar">
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <span class="nav__logo-text">Admin</span>
                     </a>
     
@@ -39,7 +27,7 @@
                         </a>
                         <a href="horarioAdmin.html" class="nav__link">
                             <i class='bx bx-calendar-star nav__icon'></i>
-                            <span class="nav__text">Horario</span>
+                            <span class="nav__text">Horarios</span>
                         </a>
                         <a href="ChecadorHorario.html" class="nav__link">
                             <i class='bx bx-check-square nav__icon'></i>
@@ -82,39 +70,91 @@
                 </a>
             </nav>
         </div>
-        
-        <section class="menu-admin">
-            <h1 class="text-menu">Bienvenido administrador <span id="userName"></span></h1>
-            <p class="ptext">use la barra de la izquierda para desplazarse entre las distintas opciones disponibles</p>
-            <div class="gif">
-                <img src="../img/admin.gif" alt="">
+        <section>
+            <div class="barra-opciones">
+                <a href="usuariosAdmin.html">Editar</a>
+                <a href="#" class="activo">Añadir</a>
             </div>
+
+            <form id="addUserForm" class="form-usuarios">
+                <h1>Añadir usuario</h1>
+                <input type="number" id="accountNumber" placeholder="Numero de cuenta" required>
+                <input type="text" id="name" placeholder="Nombre del usuario" required>
+                <input type="email" id="email" placeholder="Correo Electronico" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                <label for="role">Rol del usuario</label>
+                <select id="role" required>
+                    <option value="Alumno">Alumno</option>
+                    <option value="Jefe de grupo">Jefe de grupo</option>
+                    <option value="Coordinador">Coordinador</option>
+                    <option value="Maestro">Maestro</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+                <button type="submit" class="boton-global">Guardar</button>
+                <p id="message" style="color: green; display: none;"></p>
+                <p id="error" style="color: red; display: none;"></p>
+            </form>
         </section>
-        
+
         <script type="module">
-            import { checkAdminAuth, logout, getCurrentUser } from '../bd/auth.js';
+            import { checkAdminAuth, logout } from '../../bd/auth.js';
+            import { addUser } from '../../bd/users.js';
             
             // Verificar que el usuario sea administrador
             const user = checkAdminAuth();
             
             // Si hay un usuario y tiene permisos de administrador
             if (user) {
-                // Mostrar el nombre del usuario
-                document.getElementById('userName').textContent = user.name;
-                
                 // Configurar el botón de cierre de sesión
                 document.getElementById('btnLogout').addEventListener('click', async (e) => {
                     e.preventDefault();
                     const result = await logout();
                     if (result.success) {
-                        window.location.href = '../index.html';
+                        window.location.href = '../../index.html';
                     } else {
                         alert('Error al cerrar sesión');
+                    }
+                });
+                
+                // Configurar el formulario de añadir usuario
+                document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const messageElement = document.getElementById('message');
+                    const errorElement = document.getElementById('error');
+                    
+                    messageElement.style.display = 'none';
+                    errorElement.style.display = 'none';
+                    
+                    const userData = {
+                        accountNumber: document.getElementById('accountNumber').value,
+                        name: document.getElementById('name').value,
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value,
+                        role: document.getElementById('role').value
+                    };
+                    
+                    try {
+                        const result = await addUser(userData);
+                        
+                        if (result.success) {
+                            messageElement.textContent = result.message || 'Usuario creado correctamente';
+                            messageElement.style.display = 'block';
+                            
+                            // Limpiar formulario
+                            document.getElementById('addUserForm').reset();
+                        } else {
+                            errorElement.textContent = result.error || 'Error al crear usuario';
+                            errorElement.style.display = 'block';
+                        }
+                    } catch (error) {
+                        errorElement.textContent = error.message || 'Error al crear usuario';
+                        errorElement.style.display = 'block';
                     }
                 });
             }
         </script>
         
-        <script src="../js/sidebar.js"></script>
+        <script src="../../js/sidebar.js"></script>
     </body>
 </html>

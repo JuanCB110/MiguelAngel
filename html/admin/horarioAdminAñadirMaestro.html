@@ -3,9 +3,9 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-        <title>Horario Administrador</title>
+        <title>Horario Administrador - Añadir Horario Maestro</title>
         <style>
             .bloque-horario {
                 background-color: #f5f5f5;
@@ -13,10 +13,9 @@
                 padding: 15px;
                 margin-bottom: 20px;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                
             }
             .time-input {
-                width: 800%;
+                width: 100%;
                 padding: 8px;
                 border: 1px solid #ccc;
                 border-radius: 5px;
@@ -36,31 +35,22 @@
             /* Estilos mejorados para selectores */
             select {
                 background-color: white;
-                color: #333;
+                color: #333 !important;
                 font-size: 16px;
                 padding: 8px;
                 border: 1px solid #ccc;
                 border-radius: 5px;
                 width: 100%;
                 cursor: pointer;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-                background-repeat: no-repeat;
-                background-position: right 10px center;
-                background-size: 1em;
+                -webkit-appearance: menulist;
+                -moz-appearance: menulist;
+                appearance: menulist;
             }
             select option {
-                color: #333;
+                color: #333 !important;
                 background-color: white;
                 padding: 8px;
                 font-size: 16px;
-            }
-            select:focus {
-                outline: none;
-                border-color: #007bff;
-                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
             }
             /* Estilos para los mensajes de carga */
             .loading-message {
@@ -79,7 +69,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <span class="nav__logo-text">Admin</span>
                     </a>
     
@@ -88,13 +78,21 @@
                     </div>
     
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link">
+                        <a href="menuAdmin.html" class="nav__link active">
                             <i class='bx bx-grid-alt nav__icon'></i>
                             <span class="nav__text">Menu</span>
                         </a>
-                        <a href="horarioAdmin.html" class="nav__link active">
+                        <a href="horarioAdmin.html" class="nav__link">
                             <i class='bx bx-calendar-star nav__icon'></i>
-                            <span class="nav__text">Horario</span>
+                            <span class="nav__text">Horarios</span>
+                        </a>
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
+                        </a>
+                        <a href="ReporteAsistencias.html" class="nav__link">
+                            <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
+                            <span class="nav__text">Reportes</span>
                         </a>
                         <a href="gruposAdmin.html" class="nav__link">
                             <i class='bx bx-buildings nav__icon'></i>
@@ -112,10 +110,18 @@
                         <a href="temariosAdmin.html" class="nav__link">
                             <i class='bx bx-bookmark nav__icon'></i>
                             <span class="nav__text">Temario</span>
-                        </a>              
+                        </a>
+                        <a href="asignarJefeGrupo.html" class="nav__link">
+                            <i class='bx bx-user-check nav__icon'></i>
+                            <span class="nav__text">Jefes de grupo</span>
+                        </a>
+                        <a href="asignarAlumnoGrupo.html" class="nav__link">
+                            <i class='bx bx-user-plus nav__icon'></i>
+                            <span class="nav__text">Alumnos</span>
+                        </a>
                     </ul>
                 </div>
-                <a href="../index.html" class="nav__link" id="logout-link">           
+                <a href="../../index.html" class="nav__link" id="logout-link">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
@@ -126,25 +132,14 @@
             <div class="barra-opciones" style="width: 40%;">
                 <a href="horarioAdmin.html">Ver Grupos</a>
                 <a href="horarioVerMaestros.html">Ver Maestros</a>
-                <a href="" class="activo">Agregar Grupo</a>
-                <a href="horarioAdminAñadirMaestro.html">Agregar Maestro</a>
+                <a href="horarioAdminAñadir.html">Agregar Grupo</a>
+                <a href="#" class="activo">Agregar Maestro</a>
             </div>
 
-            <form action="" class="form-usuarios" id="horario-form">
-
-                <h1>Seleccione el grupo al que pertenece el horario</h1>
-                <select name="grupo" id="grupo-select">
-                    <option value="">Seleccione un grupo</option>
-                </select>
-
-                <h1>Seleccione el edificio al que pertenece el horario</h1>
-                <select name="edificio" id="edificio-select">
-                    <option value="">Seleccione un edificio</option>
-                </select>
-
-                <h1>Seleccione el aula al que pertenece el horario</h1>
-                <select name="aula" id="aula-select">
-                    <option value="">Seleccione un aula</option>
+            <form class="form-usuarios" id="horario-form">
+                <h1>Seleccione el maestro al que pertenece el horario</h1>
+                <select name="maestro" id="maestro-select">
+                    <option value="">Seleccione un maestro</option>
                 </select>
 
                 <h1>Seleccione la cantidad de clases que tendrá el horario</h1>
@@ -161,9 +156,12 @@
                 <!-- Contenedor para bloques de horario dinámicos -->
                 <div id="bloques-container"></div>
 
-                <!-- Template oculto para maestros y materias, será usado dinámicamente -->
+                <!-- Template oculto para aulas y materias, será usado dinámicamente -->
                 <div id="templates" class="hidden">
-                    <div id="maestros-template">
+                    <div id="aulas-template">
+                        <!-- Se llenará con JavaScript -->
+                    </div>
+                    <div id="grupos-template">
                         <!-- Se llenará con JavaScript -->
                     </div>
                     <div id="materias-template">
@@ -176,21 +174,23 @@
         </section><br>
     </body>
 
-<script src="../js/sidebar.js"></script>
-<script src="../js/barraOpciones.js"></script>
+<script src="../../js/sidebar.js"></script>
+<script src="../../js/barraOpciones.js"></script>
 <script type="module">
-    import { crearHorario } from '../bd/horarios.js';
-    import { getGrupos, getEdificios, getAulas } from '../bd/grupos.js';
-    import { getMaestros } from '../bd/maestros.js';
-    import { getMaterias } from '../bd/materias.js';
-    import { checkAdminAuth, logout } from '../bd/auth.js';
+    import { crearHorario } from '../../bd/horarios.js';
+    import { getMaestros } from '../../bd/maestros.js';
+    import { getMaterias } from '../../bd/materias.js';
+    import { getAulas, getGrupos } from '../../bd/grupos.js';
+    import { checkAdminAuth, logout } from '../../bd/auth.js';
     
     // Verificar autenticación
     checkAdminAuth();
     
-    // Cache para maestros y materias
+    // Cache para datos
     let maestrosCache = [];
     let materiasCache = [];
+    let aulasCache = [];
+    let gruposCache = [];
     
     // Cargar datos iniciales
     async function cargarDatos() {
@@ -198,92 +198,92 @@
             // Mostrar mensaje de carga
             document.getElementById('bloques-container').innerHTML = '<div class="loading-message">Cargando datos, por favor espere...</div>';
             
-            // Cargar grupos
-            const grupos = await getGrupos();
-            const selectGrupo = document.getElementById('grupo-select');
-            selectGrupo.innerHTML = '<option value="">Seleccione un grupo</option>';
-            grupos.forEach(grupo => {
-                const option = document.createElement('option');
-                option.value = grupo.id;
-                option.textContent = grupo.numeroGrupo || grupo.nombre;
-                selectGrupo.appendChild(option);
-            });
-            console.log("Grupos cargados:", grupos.length);
-            
-            // Cargar edificios
-            const edificios = await getEdificios();
-            const selectEdificio = document.getElementById('edificio-select');
-            selectEdificio.innerHTML = '<option value="">Seleccione un edificio</option>';
-            edificios.forEach(edificio => {
-                const option = document.createElement('option');
-                option.value = edificio.id;
-                option.textContent = edificio.nombre;
-                selectEdificio.appendChild(option);
-            });
-            console.log("Edificios cargados:", edificios.length);
-
-            // Cargar aulas
-            const aulas = await getAulas();
-            const selectAula = document.getElementById('aula-select');
-            selectAula.innerHTML = '<option value="">Seleccione un aula</option>';
-            aulas.forEach(aula => {
-                const option = document.createElement('option');
-                option.value = aula.id;
-                option.textContent = aula.nombre;
-                selectAula.appendChild(option);
-            });
-            console.log("Aulas cargadas:", aulas.length);
-            
             // Cargar maestros
             maestrosCache = await getMaestros();
             console.log("Maestros cargados:", maestrosCache.length, maestrosCache);
             
+            const selectMaestro = document.getElementById('maestro-select');
+            selectMaestro.innerHTML = '<option value="">Seleccione un maestro</option>';
+            
             if (maestrosCache.length === 0) {
                 console.error("No se encontraron maestros en la base de datos");
                 alert("No se encontraron maestros. Por favor, agregue maestros primero.");
+                return;
             }
             
-            const maestrosTemplate = document.getElementById('maestros-template');
-            maestrosTemplate.innerHTML = ''; // Limpiar antes de agregar
-            
-            // Opción por defecto
-            const defaultMaestroOption = document.createElement('option');
-            defaultMaestroOption.value = "";
-            defaultMaestroOption.textContent = "Seleccione un maestro";
-            maestrosTemplate.appendChild(defaultMaestroOption);
-            
-            // Agregar cada maestro
             maestrosCache.forEach(maestro => {
                 const option = document.createElement('option');
                 option.value = maestro.id;
                 option.textContent = maestro.nombre || maestro.name || `Maestro ${maestro.id}`;
-                console.log("Añadiendo maestro:", option.value, option.textContent, maestro);
-                maestrosTemplate.appendChild(option);
+                console.log("Añadiendo maestro:", option.value, option.textContent);
+                selectMaestro.appendChild(option);
             });
+            
+            // Cargar grupos
+            gruposCache = await getGrupos();
+            console.log("Grupos cargadas:", gruposCache.length);
+            
+            const gruposTemplate = document.getElementById('grupos-template');
+            gruposTemplate.innerHTML = '<option value="">Seleccione un grupo</option>';
+            
+            if (gruposCache.length === 0) {
+                console.warn("No se encontraron aulas en la base de datos");
+                // Crear algunas aulas predeterminadas
+                gruposTemplate.innerHTML += `
+                    <option value="Aula 1">Aula 1</option>
+                    <option value="Aula 2">Aula 2</option>
+                    <option value="Aula 3">Aula 3</option>
+                `;
+            } else {
+                gruposCache.forEach(grupo => {
+                    const option = document.createElement('option');
+                    option.value = grupo.id;
+                    option.textContent = grupo.numeroGrupo;
+                    gruposTemplate.appendChild(option);
+                });
+            }
+
+            // Cargar aulas
+            aulasCache = await getAulas();
+            console.log("Aulas cargadas:", aulasCache.length);
+            
+            const aulasTemplate = document.getElementById('aulas-template');
+            aulasTemplate.innerHTML = '<option value="">Seleccione un aula</option>';
+            
+            if (aulasCache.length === 0) {
+                console.warn("No se encontraron aulas en la base de datos");
+                // Crear algunas aulas predeterminadas
+                aulasTemplate.innerHTML += `
+                    <option value="Aula 1">Aula 1</option>
+                    <option value="Aula 2">Aula 2</option>
+                    <option value="Aula 3">Aula 3</option>
+                `;
+            } else {
+                aulasCache.forEach(aula => {
+                    const option = document.createElement('option');
+                    option.value = aula.id;
+                    option.textContent = aula.nombre;
+                    aulasTemplate.appendChild(option);
+                });
+            }
             
             // Cargar materias
             materiasCache = await getMaterias();
             console.log("Materias cargadas:", materiasCache.length);
             
+            const materiasTemplate = document.getElementById('materias-template');
+            materiasTemplate.innerHTML = '<option value="">Seleccione una materia</option>';
+            
             if (materiasCache.length === 0) {
                 console.error("No se encontraron materias en la base de datos");
                 alert("No se encontraron materias. Por favor, agregue materias primero.");
+                return;
             }
             
-            const materiasTemplate = document.getElementById('materias-template');
-            materiasTemplate.innerHTML = ''; // Limpiar antes de agregar
-            
-            // Opción por defecto
-            const defaultMateriaOption = document.createElement('option');
-            defaultMateriaOption.value = "";
-            defaultMateriaOption.textContent = "Seleccione una materia";
-            materiasTemplate.appendChild(defaultMateriaOption);
-            
-            // Agregar cada materia
             materiasCache.forEach(materia => {
                 const option = document.createElement('option');
                 option.value = materia.id;
-                option.textContent = materia.nombre; //|| `Materia ${materia.id}`;
+                option.textContent = materia.nombre;
                 materiasTemplate.appendChild(option);
             });
             
@@ -305,15 +305,17 @@
         container.innerHTML = '';
         
         // Obtener el HTML de los templates
-        const maestrosHTML = document.getElementById('maestros-template').innerHTML;
+        const aulasHTML = document.getElementById('aulas-template').innerHTML;
+        const gruposHTML = document.getElementById('grupos-template').innerHTML;
         const materiasHTML = document.getElementById('materias-template').innerHTML;
         
-        if (!maestrosHTML || !materiasHTML) {
+        if (!aulasHTML || !gruposHTML || !materiasHTML) {
             console.error("No se pudo obtener el contenido de los templates", { 
-                maestrosHTML: maestrosHTML?.length || 0, 
+                aulasHTML: aulasHTML?.length || 0,
+                gruposHTML: gruposHTML?.length || 0, 
                 materiasHTML: materiasHTML?.length || 0 
             });
-            alert("Error al generar los campos de maestros y materias. Intente recargar la página.");
+            alert("Error al generar los campos. Intente recargar la página.");
             return;
         }
         
@@ -327,6 +329,17 @@
             
             div.innerHTML = `
                 <div class="horario-header">Clase ${bloqueNum}</div>
+                
+                <h1>Seleccione el aula donde se impartirá la materia</h1>
+                <select name="aula-${i}" id="aula-${i}" required>
+                    ${aulasHTML}
+                </select>
+
+                <h1>Seleccione el grupo donde se impartirá la materia</h1>
+                <select name="grupo-${i}" id="grupo-${i}" required>
+                    ${gruposHTML}
+                </select>
+                
                 <div class="busqueda">
                     <label for="hora-inicio-${i}">Hora de inicio:</label>
                     <input type="time" id="hora-inicio-${i}" class="time-input" required>
@@ -334,11 +347,8 @@
                     <label for="hora-fin-${i}">Hora de fin:</label>
                     <input type="time" id="hora-fin-${i}" class="time-input" required>
                 </div>   
-                <h1>Seleccione el maestro para esta clase</h1>
-                <select name="maestro-${i}" id="maestro-${i}" required>
-                    ${maestrosHTML}
-                </select>
-                <h1>Seleccione la materia que se impartirá</h1>
+                
+                <h1>Seleccione la materia que impartirá el maestro</h1>
                 <select name="materia-${i}" id="materia-${i}" required>
                     ${materiasHTML}
                 </select>
@@ -346,15 +356,20 @@
             container.appendChild(div);
             
             // Verificar que los selectores estén funcionando correctamente
-            const maestroSelect = div.querySelector(`#maestro-${i}`);
+            const aulaSelect = div.querySelector(`#aula-${i}`);
+            const grupoSelect = div.querySelector(`#grupo-${i}`);
             const materiaSelect = div.querySelector(`#materia-${i}`);
             
-            if (maestroSelect.options.length <= 1) {
-                console.error(`Pocas o ninguna opción en el selector de maestros para clase ${bloqueNum}`, maestroSelect.innerHTML);
+            if (aulaSelect.options.length <= 1) {
+                console.error(`Pocas o ninguna opción en el selector de aulas para clase ${bloqueNum}`);
+            }
+
+            if (grupoSelect.options.length <= 1) {
+                console.error(`Pocas o ninguna opción en el selector de grupos para clase ${bloqueNum}`);
             }
             
             if (materiaSelect.options.length <= 1) {
-                console.error(`Pocas o ninguna opción en el selector de materias para clase ${bloqueNum}`, materiaSelect.innerHTML);
+                console.error(`Pocas o ninguna opción en el selector de materias para clase ${bloqueNum}`);
             }
         }
     }
@@ -372,7 +387,7 @@
             e.preventDefault();
             try {
                 await logout();
-                window.location.href = '../index.html';
+                window.location.href = '../../index.html';
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
             }
@@ -383,20 +398,16 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const grupoId = document.getElementById('grupo-select').value;
-            const edificioId = document.getElementById('edificio-select').value;
-            const aulaId = document.getElementById('aula-select').value;
+            const maestroId = document.getElementById('maestro-select').value;
             
-            // Validar que se hayan seleccionado valores
-            if (!grupoId || !edificioId || !aulaId) {
-                alert('Por favor seleccione grupo, edificio y aula');
+            // Validar que se haya seleccionado un maestro
+            if (!maestroId) {
+                alert('Por favor seleccione un maestro');
                 return;
             }
             
-            // Obtener los nombres para almacenarlos también
-            const edificioNombre = document.getElementById('edificio-select').options[document.getElementById('edificio-select').selectedIndex].textContent;
-            const aulaNombre = document.getElementById('aula-select').options[document.getElementById('aula-select').selectedIndex].textContent;
-            const grupoNombre = document.getElementById('grupo-select').options[document.getElementById('grupo-select').selectedIndex].textContent;
+            // Obtener nombre del maestro
+            const maestroNombre = document.getElementById('maestro-select').options[document.getElementById('maestro-select').selectedIndex].textContent;
             
             const bloques = document.querySelectorAll('.bloque-horario');
             const horarios = [];
@@ -406,28 +417,28 @@
                 const bloque = bloques[i];
                 const horaInicio = bloque.querySelector(`#hora-inicio-${i}`).value;
                 const horaFin = bloque.querySelector(`#hora-fin-${i}`).value;
-                const maestroSelect = bloque.querySelector(`#maestro-${i}`);
+                const aulaSelect = bloque.querySelector(`#aula-${i}`);
+                const gruposSelect = bloque.querySelector(`#grupo-${i}`);
                 const materiaSelect = bloque.querySelector(`#materia-${i}`);
                 
-                if (!horaInicio || !horaFin || !maestroSelect.value || !materiaSelect.value) {
+                if (!horaInicio || !horaFin || !aulaSelect.value || !gruposSelect.value || !materiaSelect.value) {
                     alert(`Por favor complete todos los campos en la Clase ${i+1}`);
                     return;
                 }
                 
-                const maestroNombre = maestroSelect.options[maestroSelect.selectedIndex].textContent;
+                const aulaNombre = aulaSelect.options[aulaSelect.selectedIndex].textContent;
+                const grupoNombre = gruposSelect.options[gruposSelect.selectedIndex].textContent;
                 const materiaNombre = materiaSelect.options[materiaSelect.selectedIndex].textContent;
                 
                 horarios.push({
-                    grupoId,
-                    grupo: grupoNombre,
-                    edificioId,
-                    edificio: edificioNombre,
-                    aulaId,
+                    maestroId,
+                    nombreMaestro: maestroNombre,
+                    aulaId: aulaSelect.value,
                     aula: aulaNombre,
+                    grupoId: gruposSelect.value,
+                    grupo: grupoNombre,
                     horaInicio,
                     horaFin,
-                    maestroId: maestroSelect.value,
-                    nombreMaestro: maestroNombre,
                     materiaId: materiaSelect.value,
                     materia: materiaNombre,
                     createdAt: new Date()
@@ -454,13 +465,15 @@
                 submitBtn.textContent = 'Creando horario...';
                 submitBtn.disabled = true;
                 
+                console.log("Horarios a crear:", horarios);
+                
                 // Crear cada horario
                 for (const horario of horarios) {
                     await crearHorario(horario);
                 }
                 
                 alert('Horario creado correctamente');
-                window.location.href = 'horarioAdmin.html';
+                window.location.href = 'horarioVerMaestros.html';
             } catch (error) {
                 console.error('Error al crear horario:', error);
                 alert('Error al crear horario: ' + error.message);

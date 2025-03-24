@@ -3,12 +3,12 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Asignar Jefe de Grupo</title>
         <!-- Script de verificación de autenticación inmediata -->
         <script type="module">
-            import { checkAdminAuth } from '../bd/auth.js';
+            import { checkAdminAuth } from '../../bd/auth.js';
             // Verificar autenticación inmediatamente
             document.addEventListener('DOMContentLoaded', () => {
                 const user = checkAdminAuth();
@@ -79,6 +79,29 @@
                 background-color: white;
                 margin-bottom: 10px;
             }
+            .notificacion {
+                padding: 10px 15px;
+                margin: 10px 0;
+                border-radius: 4px;
+                display: none;
+            }
+            .notificacion-exito {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .notificacion-error {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .info-actual {
+                background-color: #e9ecef;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 15px;
+                border-left: 3px solid #007bff;
+            }
         </style>
     </head>
     <body id="body">
@@ -86,7 +109,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <span class="nav__logo-text">Admin</span>
                     </a>
     
@@ -95,33 +118,46 @@
                     </div>
     
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link">
+                        <a href="menuAdmin.html" class="nav__link active">
                             <i class='bx bx-grid-alt nav__icon'></i>
-                            <span class="nav__text">Inicio</span>
+                            <span class="nav__text">Menu</span>
                         </a>
                         <a href="horarioAdmin.html" class="nav__link">
-                            <i class='bx bx-calendar nav__icon'></i>
+                            <i class='bx bx-calendar-star nav__icon'></i>
                             <span class="nav__text">Horarios</span>
                         </a>
-                        <a href="usuariosAdmin.html" class="nav__link">
-                            <i class='bx bx-user nav__icon'></i>
-                            <span class="nav__text">Usuarios</span>
-                        </a>
-                        <a href="gruposAdmin.html" class="nav__link">
-                            <i class='bx bx-group nav__icon'></i>
-                            <span class="nav__text">Grupos</span>
-                        </a>
-                        <a href="materias.html" class="nav__link">
-                            <i class='bx bx-book nav__icon'></i>
-                            <span class="nav__text">Materias</span>
-                        </a>
-                        <a href="#" class="nav__link active">
-                            <i class='bx bx-user-check nav__icon'></i>
-                            <span class="nav__text">Jefes de grupo</span>
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
                         </a>
                         <a href="ReporteAsistencias.html" class="nav__link">
                             <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
                             <span class="nav__text">Reportes</span>
+                        </a>
+                        <a href="gruposAdmin.html" class="nav__link">
+                            <i class='bx bx-buildings nav__icon'></i>
+                            <span class="nav__text">Grupos</span>
+                        </a>
+                        <a href="usuariosAdmin.html" class="nav__link">
+                            <i class='bx bx-user nav__icon' ></i>
+                            <span class="nav__text">Usuarios</span>
+                        </a>
+                        <a href="materiasAdmin.html" class="nav__link">
+                            <i class='bx bx-book-bookmark nav__icon' ></i>
+                            <span class="nav__text">Materia</span>
+                        </a>
+                        
+                        <a href="temariosAdmin.html" class="nav__link">
+                            <i class='bx bx-bookmark nav__icon'></i>
+                            <span class="nav__text">Temario</span>
+                        </a>
+                        <a href="asignarJefeGrupo.html" class="nav__link">
+                            <i class='bx bx-user-check nav__icon'></i>
+                            <span class="nav__text">Jefes de grupo</span>
+                        </a>
+                        <a href="asignarAlumnoGrupo.html" class="nav__link">
+                            <i class='bx bx-user-plus nav__icon'></i>
+                            <span class="nav__text">Alumnos</span>
                         </a>
                     </ul>
                 </div>
@@ -141,6 +177,8 @@
                     <label for="filtro-jefe">Filtrar por nombre de jefe</label>
                     <input type="text" id="filtro-jefe" placeholder="Escriba para filtrar...">
                 </div>
+                
+                <div id="notificacion" class="notificacion"></div>
             </div>
 
             <div class="grid-container" id="lista-jefes">
@@ -158,10 +196,22 @@
                     <h2>Asignar Grupo</h2>
                     <p id="jefe-seleccionado"></p>
                     
+                    <div class="info-actual" id="info-actual">
+                        <p><strong>Grupo actual:</strong> <span id="grupo-actual">Sin asignar</span></p>
+                        <p><strong>Aula actual:</strong> <span id="aula-actual">Sin asignar</span></p>
+                    </div>
+                    
                     <div class="form-group">
                         <label for="grupo-select">Seleccione un grupo</label>
                         <select id="grupo-select">
-                            <option value="">Cargando grupos...</option>
+                            <option value="">Seleccione un grupo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="aula-select">Seleccione un aula</label>
+                        <select id="aula-select">
+                            <option value="">Seleccione un aula</option>
                         </select>
                     </div>
                     
@@ -171,10 +221,11 @@
         </section>
     </body>
 
-<script src="../js/sidebar.js"></script>
+<script src="../../js/sidebar.js"></script>
 <script type="module">
-    import { checkAdminAuth, getJefesGrupo, asignarJefeGrupo, logout } from '../bd/auth.js';
-    import { getGrupos } from '../bd/grupos.js';
+    import { checkAdminAuth, getJefesGrupo, asignarJefeGrupo, logout } from '../../bd/auth.js';
+    import { getGrupos, getGrupoPorId, actualizarGrupo } from '../../bd/grupos.js';
+    import { getAulas, getAulaPorId } from '../../bd/aulas.js';
     
     // Referencias a elementos DOM
     const listaJefes = document.getElementById('lista-jefes');
@@ -183,13 +234,20 @@
     const closeModal = document.querySelector('.close');
     const jefeSeleccionado = document.getElementById('jefe-seleccionado');
     const grupoSelect = document.getElementById('grupo-select');
+    const aulaSelect = document.getElementById('aula-select');
+    const grupoActual = document.getElementById('grupo-actual');
+    const aulaActual = document.getElementById('aula-actual');
     const btnAsignar = document.getElementById('btn-asignar');
     const logoutLink = document.getElementById('logout-link');
+    const notificacion = document.getElementById('notificacion');
     
     // Variables globales
     let jefes = [];
     let grupos = [];
+    let aulas = [];
     let jefeActual = null;
+    let grupoActualId = null;
+    let aulaActualId = null;
     let currentUser = null;
     
     // Cargar datos iniciales
@@ -204,20 +262,23 @@
             // Mostrar mensaje de carga
             listaJefes.innerHTML = '<div class="jefe-card"><h3>Cargando...</h3><p>Obteniendo datos...</p></div>';
             
-            // Obtener jefes de grupo y grupos
-            [jefes, grupos] = await Promise.all([
+            // Obtener jefes de grupo, grupos y aulas
+            [jefes, grupos, aulas] = await Promise.all([
                 getJefesGrupo(),
-                getGrupos()
+                getGrupos(),
+                getAulas()
             ]);
             
             // Mostrar jefes de grupo
             mostrarJefes(jefes);
             
-            // Cargar grupos en el select
+            // Cargar grupos y aulas en los selects
             cargarGrupos(grupos);
+            cargarAulas(aulas);
         } catch (error) {
             console.error('Error al cargar datos:', error);
             listaJefes.innerHTML = '<div class="jefe-card"><h3>Error</h3><p>No se pudieron cargar los datos</p></div>';
+            mostrarMensaje('Error al cargar los datos. Intente nuevamente.', false);
         }
     }
     
@@ -244,8 +305,10 @@
                 <p class="${grupoAsignado ? 'grupo-asignado' : 'sin-grupo'}">
                     <strong>Grupo:</strong> ${grupoAsignado ? grupoAsignado.numeroGrupo : 'Sin asignar'}
                 </p>
+                ${grupoAsignado && grupoAsignado.aulaId ? 
+                    `<p><strong>Aula:</strong> ${obtenerNombreAula(grupoAsignado.aulaId)}</p>` : ''}
                 <button class="boton-asignar" data-jefe-id="${jefe.id}" data-jefe-email="${jefe.email}" data-jefe-name="${jefe.name}">
-                    ${grupoAsignado ? 'Reasignar grupo' : 'Asignar grupo'}
+                    ${grupoAsignado ? 'Editar asignación' : 'Asignar grupo'}
                 </button>
             `;
             
@@ -262,6 +325,12 @@
                 abrirModalAsignar(jefeId, jefeName, jefeEmail);
             });
         });
+    }
+    
+    // Obtener nombre de aula por ID
+    function obtenerNombreAula(aulaId) {
+        const aula = aulas.find(a => a.id === aulaId);
+        return aula ? aula.nombre : 'Desconocida';
     }
     
     // Filtrar jefes de grupo
@@ -284,35 +353,96 @@
     // Cargar grupos en el select
     function cargarGrupos(gruposLista) {
         grupoSelect.innerHTML = '<option value="">Seleccione un grupo</option>';
-        
+
         gruposLista.forEach(grupo => {
             const option = document.createElement('option');
             option.value = grupo.id;
-            option.textContent = `${grupo.numeroGrupo} - ${grupo.carrera || ''} (${grupo.aula || 'Sin aula'})`;
+            option.textContent = `Grupo ${grupo.numeroGrupo}`;
             grupoSelect.appendChild(option);
+        });
+        
+        // Al cambiar el grupo, intentar cargar su aula si tiene
+        grupoSelect.addEventListener('change', async function() {
+            const grupoId = this.value;
+            if (grupoId) {
+                try {
+                    const grupo = await getGrupoPorId(grupoId);
+                    if (grupo && grupo.aulaId) {
+                        aulaSelect.value = grupo.aulaId;
+                    } else {
+                        aulaSelect.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error al obtener datos del grupo:', error);
+                }
+            }
+        });
+    }
+
+    // Cargar aulas en el select
+    function cargarAulas(aulasLista) {
+        aulaSelect.innerHTML = '<option value="">Seleccione un aula</option>';
+        
+        aulasLista.forEach(aula => {
+            const option = document.createElement('option');
+            option.value = aula.id;
+            option.textContent = aula.nombre || `Aula ${aula.numeroAula || aula.id}`;
+            aulaSelect.appendChild(option);
         });
     }
     
     // Abrir modal para asignar grupo
-    function abrirModalAsignar(jefeId, jefeName, jefeEmail) {
+    async function abrirModalAsignar(jefeId, jefeName, jefeEmail) {
         jefeActual = { id: jefeId, name: jefeName, email: jefeEmail };
         jefeSeleccionado.textContent = `Jefe de grupo: ${jefeName} (${jefeEmail})`;
         
-        // Encontrar el grupo actual (si existe)
+        // Encontrar el grupo actual y su aula (si existe)
         const jefe = jefes.find(j => j.id === jefeId);
+        
         if (jefe && jefe.grupoId) {
-            grupoSelect.value = jefe.grupoId;
+            grupoActualId = jefe.grupoId;
+            try {
+                const grupo = await getGrupoPorId(jefe.grupoId);
+                grupoSelect.value = jefe.grupoId;
+                
+                const grupoInfo = grupos.find(g => g.id === jefe.grupoId);
+                grupoActual.textContent = grupoInfo ? `Grupo ${grupoInfo.numeroGrupo}` : 'Desconocido';
+                
+                if (grupo && grupo.aulaId) {
+                    aulaActualId = grupo.aulaId;
+                    aulaSelect.value = grupo.aulaId;
+                    
+                    try {
+                        const aula = await getAulaPorId(grupo.aulaId);
+                        aulaActual.textContent = aula ? aula.nombre : 'Desconocida';
+                    } catch (error) {
+                        aulaActual.textContent = 'Error al cargar';
+                        console.error('Error al obtener el aula:', error);
+                    }
+                } else {
+                    aulaActualId = null;
+                    aulaActual.textContent = 'Sin asignar';
+                }
+            } catch (error) {
+                grupoActual.textContent = 'Error al cargar';
+                console.error('Error al obtener el grupo:', error);
+            }
         } else {
+            grupoActualId = null;
+            aulaActualId = null;
             grupoSelect.value = '';
+            aulaSelect.value = '';
+            grupoActual.textContent = 'Sin asignar';
+            aulaActual.textContent = 'Sin asignar';
         }
         
         modal.style.display = 'block';
     }
     
-    // Asignar grupo al jefe
+    // Asignar grupo y aula
     async function realizarAsignacion() {
         if (!jefeActual || !grupoSelect.value) {
-            alert('Debe seleccionar un grupo');
+            mostrarMensaje('Debe seleccionar un grupo', false);
             return;
         }
         
@@ -320,24 +450,64 @@
             btnAsignar.disabled = true;
             btnAsignar.textContent = 'Asignando...';
             
+            // Primero asignar el jefe al grupo
             const resultado = await asignarJefeGrupo(jefeActual.email, grupoSelect.value);
             
             if (resultado.success) {
-                alert('Grupo asignado correctamente');
+                // Si se asignó correctamente el jefe, actualizar el aula si se seleccionó
+                if (aulaSelect.value) {
+                    try {
+                        // Asegurarnos que aulaId tenga un valor válido
+                        const datosActualizacion = { 
+                            aulaId: aulaSelect.value || null 
+                        };
+                        
+                        await actualizarGrupo(grupoSelect.value, datosActualizacion);
+                        
+                        mostrarMensaje('Grupo y aula asignados correctamente', true);
+                    } catch (error) {
+                        console.error('Error al asignar aula:', error);
+                        mostrarMensaje('Se asignó el grupo pero hubo un error al asignar el aula', false);
+                    }
+                } else {
+                    // Si no hay aula seleccionada, asegurarse de que el campo aulaId sea null explícitamente
+                    try {
+                        await actualizarGrupo(grupoSelect.value, { aulaId: null });
+                        mostrarMensaje('Grupo asignado correctamente', true);
+                    } catch (error) {
+                        console.error('Error al limpiar el aula:', error);
+                        mostrarMensaje('Grupo asignado, pero hubo un error al actualizar la información del aula', false);
+                    }
+                }
+                
                 modal.style.display = 'none';
                 
-                // Actualizar la lista de jefes
+                // Actualizar la lista de jefes y los grupos
                 await cargarDatos();
             } else {
-                alert(`Error al asignar grupo: ${resultado.error}`);
+                mostrarMensaje(`Error al asignar grupo: ${resultado.error}`, false);
             }
         } catch (error) {
-            console.error('Error al asignar grupo:', error);
-            alert('Error al asignar grupo');
+            console.error('Error al asignar grupo/aula:', error);
+            mostrarMensaje('Error al realizar la asignación', false);
         } finally {
             btnAsignar.disabled = false;
             btnAsignar.textContent = 'Asignar';
         }
+    }
+    
+    // Mostrar mensaje de notificación
+    function mostrarMensaje(mensaje, esExito) {
+        notificacion.textContent = mensaje;
+        notificacion.className = esExito ? 
+            'notificacion notificacion-exito' : 
+            'notificacion notificacion-error';
+        notificacion.style.display = 'block';
+        
+        // Ocultar la notificación después de 5 segundos
+        setTimeout(() => {
+            notificacion.style.display = 'none';
+        }, 5000);
     }
     
     // Eventos
@@ -369,6 +539,7 @@
                 window.location.href = '../index.html';
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
+                mostrarMensaje('Error al cerrar sesión', false);
             }
         });
     });

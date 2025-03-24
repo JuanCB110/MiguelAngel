@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../../css/principal.css">
+        <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+        <title>Temario Administrador</title>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/+esm"></script>
+        <style>
+            select {
+                background-color: white;
+                color: #333 !important;
+                font-size: 16px;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                width: 100%;
+                cursor: pointer;
+                -webkit-appearance: menulist;
+                -moz-appearance: menulist;
+                appearance: menulist;
+            }
+            select option {
+                color: #333 !important;
+                background-color: white;
+                padding: 8px;
+                font-size: 16px;
+            }
+            .loading-message {
+                text-align: center;
+                padding: 10px;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+                border: 1px solid #ddd;
+            }
+            .preview-container {
+                margin-top: 20px;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            .preview-container iframe {
+                width: 100%;
+                height: 500px;
+                border: none;
+            }
+            .preview-container img {
+                max-width: 100%;
+                display: block;
+                margin: 0 auto;
+            }
+            #archivo-actual {
+                margin-top: 10px;
+                font-style: italic;
+                color: #666;
+            }
+        </style>
+    </head>
+    <body id="body">
+        <div class="l-navbar" id="navbar">
+            <nav class="nav">
+                <div>
+                    <a href="#" class="nav__logo">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
+                        <span class="nav__logo-text">Admin</span>
+                    </a>
+    
+                    <div class="nav__toggle" id="nav-toggle">
+                        <i class='bx bx-chevron-right'></i>
+                    </div>
+    
+                    <ul class="nav__list">
+                        <a href="menuAdmin.html" class="nav__link active">
+                            <i class='bx bx-grid-alt nav__icon'></i>
+                            <span class="nav__text">Menu</span>
+                        </a>
+                        <a href="horarioAdmin.html" class="nav__link">
+                            <i class='bx bx-calendar-star nav__icon'></i>
+                            <span class="nav__text">Horarios</span>
+                        </a>
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
+                        </a>
+                        <a href="ReporteAsistencias.html" class="nav__link">
+                            <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
+                            <span class="nav__text">Reportes</span>
+                        </a>
+                        <a href="gruposAdmin.html" class="nav__link">
+                            <i class='bx bx-buildings nav__icon'></i>
+                            <span class="nav__text">Grupos</span>
+                        </a>
+                        <a href="usuariosAdmin.html" class="nav__link">
+                            <i class='bx bx-user nav__icon' ></i>
+                            <span class="nav__text">Usuarios</span>
+                        </a>
+                        <a href="materiasAdmin.html" class="nav__link">
+                            <i class='bx bx-book-bookmark nav__icon' ></i>
+                            <span class="nav__text">Materia</span>
+                        </a>
+                        
+                        <a href="temariosAdmin.html" class="nav__link">
+                            <i class='bx bx-bookmark nav__icon'></i>
+                            <span class="nav__text">Temario</span>
+                        </a>
+                        <a href="asignarJefeGrupo.html" class="nav__link">
+                            <i class='bx bx-user-check nav__icon'></i>
+                            <span class="nav__text">Jefes de grupo</span>
+                        </a>
+                        <a href="asignarAlumnoGrupo.html" class="nav__link">
+                            <i class='bx bx-user-plus nav__icon'></i>
+                            <span class="nav__text">Alumnos</span>
+                        </a>
+                    </ul>
+                </div>
+                <a href="../../index.html" class="nav__link" id="logout-link">           
+                    <i class='bx bx-log-out-circle nav__icon'></i>
+                    <span class="nav__text">Salir</span>
+                </a>
+            </nav>
+        </div>
+
+        <section>
+            <div class="barra-opciones">
+                <a href="#" class="activo">Editar</a>
+                <a href="temariosAdminAñadir.html">Agregar</a>
+            </div>
+            <div class="form-usuarios" id="temario-form">
+                <h1>Seleccione el semestre al que pertenece la materia</h1>
+                <select name="semestre" id="semestre-select">
+                    <option value="1">1er semestre</option>
+                    <option value="2">2do semestre</option>
+                    <option value="3">3er semestre</option>
+                    <option value="4">4to semestre</option>
+                    <option value="5">5to semestre</option>
+                    <option value="6">6to semestre</option>
+                    <option value="7">7mo semestre</option>
+                    <option value="8">8vo semestre</option>
+                    <option value="9">9no semestre</option>
+                </select>
+                <h1>Seleccione la materia a la que quiera ver o editar el temario</h1>
+                <select name="materia" id="materia-select">
+                    <option value="">Cargando materias...</option>
+                </select>
+                
+                <div id="archivo-actual"></div>
+                
+                <input type="file" name="archivo" id="archivo-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png">
+                
+                <div id="preview-container" class="preview-container" style="display: none;">
+                    <!-- Aquí se mostrará la vista previa del temario -->
+                </div>
+                
+                <div class="busqueda" style="flex-direction: row-reverse;">
+                    <button class="boton-global" id="btn-ver">Ver</button>
+                    <button class="boton-global" id="btn-actualizar">Actualizar</button>
+                    <button class="boton-global-rojo" id="btn-eliminar">Eliminar</button>
+                </div>
+            </div>
+        </section>
+    </body>
+
+<script src="../../js/sidebar.js"></script>
+<script src="../../js/barraOpciones.js"></script>
+<script type="module">
+    import { getMaterias } from '../../bd/materias.js';
+    import { checkAdminAuth, logout } from '../../bd/auth.js';
+    import { 
+        getTemarioPorMateriaId, 
+        actualizarTemario, 
+        eliminarTemario 
+    } from '../../bd/temarios.js';
+    
+    // Verificar autenticación
+    checkAdminAuth();
+    
+    // Referencias a elementos del DOM
+    const semestreSelect = document.getElementById('semestre-select');
+    const materiaSelect = document.getElementById('materia-select');
+    const archivoInput = document.getElementById('archivo-input');
+    const archivoActual = document.getElementById('archivo-actual');
+    const previewContainer = document.getElementById('preview-container');
+    const btnVer = document.getElementById('btn-ver');
+    const btnActualizar = document.getElementById('btn-actualizar');
+    const btnEliminar = document.getElementById('btn-eliminar');
+    const logoutLink = document.getElementById('logout-link');
+    
+    // Variables para almacenar datos
+    let materias = [];
+    let temarioActual = null;
+    let archivoSeleccionado = null;
+    
+    // Cargar materias según el semestre seleccionado
+    async function cargarMaterias() {
+        try {
+            const semestre = semestreSelect.value;
+            materiaSelect.innerHTML = '<option value="">Cargando materias...</option>';
+            
+            // Obtener todas las materias
+            materias = await getMaterias();
+            
+            // Filtrar por semestre
+            const materiasFiltradas = materias.filter(materia => 
+                materia.semestre == semestre);
+            
+            if (materiasFiltradas.length === 0) {
+                materiaSelect.innerHTML = '<option value="">No hay materias en este semestre</option>';
+                return;
+            }
+            
+            materiaSelect.innerHTML = '<option value="">Seleccione una materia</option>';
+            materiasFiltradas.forEach(materia => {
+                const option = document.createElement('option');
+                option.value = materia.id;
+                option.textContent = materia.nombre;
+                materiaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar materias:', error);
+            materiaSelect.innerHTML = '<option value="">Error al cargar materias</option>';
+        }
+    }
+    
+    // Cargar temario de la materia seleccionada
+    async function cargarTemario() {
+        try {
+            const materiaId = materiaSelect.value;
+            
+            if (!materiaId) {
+                archivoActual.textContent = '';
+                previewContainer.style.display = 'none';
+                btnVer.disabled = true;
+                btnEliminar.disabled = true;
+                return;
+            }
+            
+            archivoActual.textContent = 'Cargando temario...';
+            previewContainer.style.display = 'none';
+            
+            temarioActual = await getTemarioPorMateriaId(materiaId);
+            
+            if (temarioActual && temarioActual.url) {
+                archivoActual.textContent = `Temario actual: ${temarioActual.nombre || 'Archivo sin nombre'} (guardado en ${temarioActual.storageProvider || 'supabase'})`;
+                btnVer.disabled = false;
+                btnEliminar.disabled = false;
+            } else {
+                archivoActual.textContent = 'No hay temario cargado para esta materia';
+                btnVer.disabled = true;
+                btnEliminar.disabled = true;
+            }
+        } catch (error) {
+            console.error('Error al cargar temario:', error);
+            archivoActual.textContent = 'Error al cargar el temario';
+            btnVer.disabled = true;
+            btnEliminar.disabled = true;
+        }
+    }
+    
+    // Mostrar vista previa del temario
+    function mostrarVistaPrevia() {
+        if (!temarioActual || !temarioActual.url) {
+            alert('No hay temario disponible para mostrar');
+            return;
+        }
+        
+        previewContainer.style.display = 'block';
+        
+        const url = temarioActual.url;
+        const extension = url.split('.').pop().toLowerCase();
+        
+        if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+            previewContainer.innerHTML = `<img src="${url}" alt="Vista previa del temario">`;
+        } else if (extension === 'pdf') {
+            previewContainer.innerHTML = `<iframe src="${url}"></iframe>`;
+        } else {
+            previewContainer.innerHTML = `<p>No se puede mostrar una vista previa para este tipo de archivo. <a href="${url}" target="_blank">Haga clic aquí para descargarlo</a></p>`;
+        }
+    }
+    
+    // Actualizar el temario
+    async function actualizarTemarioArchivo() {
+        try {
+            const materiaId = materiaSelect.value;
+            if (!materiaId) {
+                alert('Por favor seleccione una materia');
+                return;
+            }
+            
+            if (!archivoSeleccionado) {
+                alert('Por favor seleccione un archivo para el temario');
+                return;
+            }
+            
+            const materia = materias.find(m => m.id === materiaId);
+            if (!materia) {
+                alert('Error al encontrar la materia seleccionada');
+                return;
+            }
+            
+            // Preparar datos del temario
+            btnActualizar.textContent = 'Actualizando...';
+            btnActualizar.disabled = true;
+            
+            await actualizarTemario(materiaId, archivoSeleccionado, materia.nombre);
+            
+            alert('Temario actualizado correctamente');
+            await cargarTemario();
+            
+            // Limpiar selección de archivo
+            archivoInput.value = '';
+            archivoSeleccionado = null;
+            
+        } catch (error) {
+            console.error('Error al actualizar temario:', error);
+            alert('Error al actualizar el temario: ' + error.message);
+        } finally {
+            btnActualizar.textContent = 'Actualizar';
+            btnActualizar.disabled = false;
+        }
+    }
+    
+    // Eliminar el temario
+    async function eliminarTemarioArchivo() {
+        try {
+            const materiaId = materiaSelect.value;
+            
+            if (!materiaId || !temarioActual) {
+                alert('No hay temario para eliminar');
+                return;
+            }
+            
+            if (!confirm('¿Está seguro de que desea eliminar este temario? Esta acción no se puede deshacer.')) {
+                return;
+            }
+            
+            btnEliminar.textContent = 'Eliminando...';
+            btnEliminar.disabled = true;
+            
+            await eliminarTemario(materiaId);
+            
+            alert('Temario eliminado correctamente');
+            previewContainer.style.display = 'none';
+            archivoActual.textContent = 'No hay temario cargado para esta materia';
+            temarioActual = null;
+            
+            btnVer.disabled = true;
+            btnEliminar.disabled = true;
+            
+        } catch (error) {
+            console.error('Error al eliminar temario:', error);
+            alert('Error al eliminar el temario: ' + error.message);
+        } finally {
+            btnEliminar.textContent = 'Eliminar';
+            btnEliminar.disabled = false;
+        }
+    }
+    
+    // Evento para cambio de semestre
+    semestreSelect.addEventListener('change', cargarMaterias);
+    
+    // Evento para cambio de materia
+    materiaSelect.addEventListener('change', cargarTemario);
+    
+    // Evento para selección de archivo
+    archivoInput.addEventListener('change', (e) => {
+        archivoSeleccionado = e.target.files[0];
+        if (archivoSeleccionado) {
+            const fileName = archivoSeleccionado.name;
+            archivoActual.textContent = `Archivo seleccionado: ${fileName}`;
+        } else {
+            archivoActual.textContent = 'No se ha seleccionado ningún archivo';
+        }
+    });
+    
+    // Evento para ver temario
+    btnVer.addEventListener('click', mostrarVistaPrevia);
+    
+    // Evento para actualizar temario
+    btnActualizar.addEventListener('click', actualizarTemarioArchivo);
+    
+    // Evento para eliminar temario
+    btnEliminar.addEventListener('click', eliminarTemarioArchivo);
+    
+    // Evento para cierre de sesión
+    logoutLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await logout();
+            window.location.href = '../../index.html';
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+        }
+    });
+    
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarMaterias();
+        btnVer.disabled = true;
+        btnEliminar.disabled = true;
+    });
+</script>
+</html>

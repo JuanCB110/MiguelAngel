@@ -9,6 +9,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   doc,
   updateDoc
 } from './firebase-config.js';
@@ -172,10 +173,19 @@ export function checkAlumnoAuth() {
   return user;
 }
 
-// Asignar jefe de grupo a un grupo específico
-export async function asignarJefeGrupo(userId, grupoId) {
+// Asignar un grupo a un jefe de grupo
+export async function asignarJefeGrupo(userId, grupoId, aulaId = null) {
   try {
-    // Primero obtenemos el documento del usuario
+    // Validar que se proporcionen los valores necesarios
+    if (!userId) {
+      throw new Error("Se requiere el ID del usuario");
+    }
+    if (!grupoId) {
+      throw new Error("Se requiere el ID del grupo");
+    }
+    
+    console.log(`Asignando grupo ${grupoId} al jefe de grupo ${userId}. Aula: ${aulaId || 'No asignada'}`);
+    
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("email", "==", userId));
     const querySnapshot = await getDocs(q);
@@ -187,12 +197,20 @@ export async function asignarJefeGrupo(userId, grupoId) {
     const userDoc = querySnapshot.docs[0];
     const userRef = doc(db, "users", userDoc.id);
     
-    // Actualizamos el documento con el ID del grupo
-    await updateDoc(userRef, {
+    // Creamos un objeto con los campos a actualizar
+    const updateData = {
       grupoId: grupoId,
       role: 'Jefe de grupo', // Aseguramos que tenga el rol correcto
       updatedAt: new Date()
-    });
+    };
+    
+    // Solo agregamos aulaId si se proporciona un valor
+    if (aulaId !== undefined && aulaId !== null) {
+      updateData.aulaId = aulaId;
+    }
+    
+    // Actualizamos el documento con los campos definidos
+    await updateDoc(userRef, updateData);
     
     return { 
       success: true, 
@@ -275,3 +293,30 @@ export async function getAlumnos() {
     return [];
   }
 } 
+
+// Obtener un usuario por su userId (usando el ID del documento)
+export async function getUserById(userId) {
+  try {
+    // Obtener la referencia a la colección de usuarios
+    const usersRef = collection(db, "users");
+
+    // Obtener el documento con el ID igual a userId
+    const docRef = doc(usersRef, userId); // Buscamos el documento cuyo ID es igual a userId
+    const docSnap = await getDoc(docRef); // Obtener el documento
+
+    // Verificar si el documento existe
+    if (docSnap.exists()) {
+      return {
+        id: docSnap.id,
+        ...docSnap.data() // Devolver los datos del documento
+      };
+    } else {
+      console.log("Usuario no encontrado");
+      return null; // Si el documento no existe
+    }
+  } catch (error) {
+    console.error("Error al obtener el usuario:", error);
+    return null;
+  }
+}
+

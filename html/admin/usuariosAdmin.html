@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Usuarios Administrador</title>
     </head>
@@ -12,7 +12,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <span class="nav__logo-text">Admin</span>
                     </a>
     
@@ -21,19 +21,27 @@
                     </div>
     
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link">
+                        <a href="menuAdmin.html" class="nav__link active">
                             <i class='bx bx-grid-alt nav__icon'></i>
                             <span class="nav__text">Menu</span>
                         </a>
                         <a href="horarioAdmin.html" class="nav__link">
                             <i class='bx bx-calendar-star nav__icon'></i>
-                            <span class="nav__text">Horario</span>
+                            <span class="nav__text">Horarios</span>
+                        </a>
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
+                        </a>
+                        <a href="ReporteAsistencias.html" class="nav__link">
+                            <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
+                            <span class="nav__text">Reportes</span>
                         </a>
                         <a href="gruposAdmin.html" class="nav__link">
                             <i class='bx bx-buildings nav__icon'></i>
                             <span class="nav__text">Grupos</span>
                         </a>
-                        <a href="usuariosAdmin.html" class="nav__link active">
+                        <a href="usuariosAdmin.html" class="nav__link">
                             <i class='bx bx-user nav__icon' ></i>
                             <span class="nav__text">Usuarios</span>
                         </a>
@@ -45,7 +53,15 @@
                         <a href="temariosAdmin.html" class="nav__link">
                             <i class='bx bx-bookmark nav__icon'></i>
                             <span class="nav__text">Temario</span>
-                        </a>              
+                        </a>
+                        <a href="asignarJefeGrupo.html" class="nav__link">
+                            <i class='bx bx-user-check nav__icon'></i>
+                            <span class="nav__text">Jefes de grupo</span>
+                        </a>
+                        <a href="asignarAlumnoGrupo.html" class="nav__link">
+                            <i class='bx bx-user-plus nav__icon'></i>
+                            <span class="nav__text">Alumnos</span>
+                        </a>
                     </ul>
                 </div>
                 <a href="#" class="nav__link" id="btnLogout">           
@@ -94,12 +110,12 @@
             </form>
         </section>
 
-        <script src="../js/barraOpciones.js"></script>
-        <script src="../js/sidebar.js"></script>
+        <script src="../../js/barraOpciones.js"></script>
+        <script src="../../js/sidebar.js"></script>
         
         <script type="module">
-            import { checkAdminAuth, logout } from '../bd/auth.js';
-            import { getUserByAccountNumber, updateUser, deleteUser } from '../bd/users.js';
+            import { checkAdminAuth, logout } from '../../bd/auth.js';
+            import { getUserByAccountNumber, updateUser, deleteUser } from '../../bd/users.js';
             
             // Verificar que el usuario sea administrador
             const user = checkAdminAuth();

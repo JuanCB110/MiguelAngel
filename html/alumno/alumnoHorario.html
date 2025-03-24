@@ -3,12 +3,12 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Horario - Alumno</title>
         <!-- Script de verificación de autenticación inmediata -->
         <script type="module">
-            import { checkAlumnoAuth } from '../bd/auth.js';
+            import { checkAlumnoAuth } from '../../bd/auth.js';
             // Verificar autenticación inmediatamente
             document.addEventListener('DOMContentLoaded', () => {
                 const user = checkAlumnoAuth();
@@ -91,7 +91,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <!--? Al alumno le sale el numero de su grupo  -->
                         <span class="nav__logo-text" id="numero-grupo">Grupo</span>
                     </a>
@@ -111,7 +111,7 @@
                         </a>
                     </ul>
                 </div>
-                <a href="#" class="nav__link" id="logout-link">           
+                <a href="../../index.html" class="nav__link" id="logout-link">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
@@ -149,12 +149,12 @@
         </section>
     </body>
 
-<script src="../js/sidebar.js"></script>
+<script src="../../js/sidebar.js"></script>
 <script type="module">
-    import { getHorarioPorGrupo } from '../bd/horarios.js';
-    import { getGrupoPorId } from '../bd/grupos.js';
-    import { getAsistenciasPorGrupoYFecha } from '../bd/asistencias.js';
-    import { checkAlumnoAuth, getCurrentUser, logout } from '../bd/auth.js';
+    import { getHorarioPorGrupo } from '../../bd/horarios.js';
+    import { getGrupoPorId } from '../../bd/grupos.js';
+    import { getAsistenciasPorGrupoYFecha } from '../../bd/asistencias.js';
+    import { checkAlumnoAuth, getCurrentUser, logout } from '../../bd/auth.js';
     
     // Referencias a elementos DOM
     const welcomeMessage = document.getElementById('welcome-message');
@@ -282,7 +282,7 @@
             e.preventDefault();
             try {
                 await logout();
-                window.location.href = '../index.html';
+                window.location.href = '../../index.html';
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
             }

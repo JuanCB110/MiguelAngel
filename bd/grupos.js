@@ -5,7 +5,8 @@ import {
     getDocs, 
     updateDoc, 
     deleteDoc, 
-    doc, 
+    doc,
+    getDoc, 
     query, 
     where 
 } from './firebase-config.js';
@@ -25,18 +26,26 @@ export const getGrupos = async () => {
     }
 };
 
-// Obtener grupo por ID
+// Obtener grupo por ID (usando el ID del documento directamente)
 export const getGrupoPorId = async (grupoId) => {
     try {
-        const q = query(collection(db, 'grupos'), where('id', '==', grupoId));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }))[0];
+      // Obtener la referencia del documento con el ID igual a grupoId
+      const docRef = doc(db, "grupos", grupoId); // Obtener el documento con el ID proporcionado
+      const docSnap = await getDoc(docRef); // Obtener el documento
+
+      // Verificar si el documento existe
+    if (docSnap.exists()) {
+        return {
+        id: docSnap.id,
+          ...docSnap.data() // Devolver los datos del documento
+        };
+    } else {
+        console.log("Grupo no encontrado");
+        return null; // Si el documento no existe
+    }
     } catch (error) {
-        console.error('Error al obtener grupo por ID:', error);
-        throw error;
+    console.error("Error al obtener grupo por ID:", error);
+    throw error;
     }
 };
 

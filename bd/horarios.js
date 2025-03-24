@@ -33,6 +33,8 @@ export const getHorarioPorGrupo = async (grupoId) => {
             id: doc.id,
             ...doc.data()
         }));
+        console.log("ID del grupo:", grupoId);
+        console.log("Horarios:", horarios);
         
         console.log("Horarios antes de procesar:", JSON.stringify(horarios, null, 2));
         

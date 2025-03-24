@@ -3,12 +3,12 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Horario - Jefe de Grupo</title>
         <!-- Script de verificación de autenticación inmediata -->
         <script type="module">
-            import { checkJefeGrupoAuth } from '../bd/auth.js';
+            import { checkJefeGrupoAuth, getCurrentUser } from '../../bd/auth.js';
             // Verificar autenticación inmediatamente
             document.addEventListener('DOMContentLoaded', () => {
                 const user = checkJefeGrupoAuth();
@@ -94,6 +94,27 @@
                 font-size: 16px;
                 width: 100%;
             }
+            .mi-grupo {
+                margin-top: 15px;
+                margin-bottom: 15px;
+                padding: 15px;
+                background-color: #e8f4ff;
+                border-radius: 10px;
+                border-left: 4px solid #007bff;
+            }
+            .detalle-grupo {
+                margin: 5px 0;
+                padding: 5px 0;
+                border-bottom: 1px dashed #ccc;
+            }
+            .detalle-grupo strong {
+                color: #0056b3;
+            }
+            .detalle-maestros {
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid #ccc;
+            }
         </style>
     </head>
     <body id="body">
@@ -101,7 +122,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <!--? Al jefe de grupo le sale el numero de su grupo  -->
                         <span class="nav__logo-text" id="numero-grupo">Grupo</span>
                     </a>
@@ -121,7 +142,7 @@
                         </a>
                     </ul>
                 </div>
-                <a href="#" class="nav__link" id="logout-link">           
+                <a href="../../index.html" class="nav__link" id="logout-link">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
@@ -132,6 +153,11 @@
             <div class="grupo-info">
                 <h1 id="welcome-message">Bienvenido Jefe de Grupo</h1>
                 
+                <div id="grupo-asignado-info" class="mi-grupo">
+                    <h3>Información de tu grupo asignado:</h3>
+                    <div id="grupo-detalles">Cargando información del grupo...</div>
+                </div>
+                
                 <div class="form-group">
                     <label for="fecha-actual">Fecha de hoy</label>
                     <input type="date" id="fecha-actual" name="fecha">
@@ -141,15 +167,19 @@
             <h2 class="horario-header" id="grupo-header">HORARIO DEL GRUPO</h2>
             <div class="horario-ver">
                 <table id="tabla-horario">
-                    <tr>
-                        <th>Hora</th>
-                        <th>Materia</th>
-                        <th>Maestro</th>
-                        <th>Estado</th>
-                    </tr>
-                    <tr>
-                        <td colspan="4" class="loading">Cargando horario del grupo...</td>
-                    </tr>
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Materia</th>
+                            <th>Maestro</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="loading">Cargando horario del grupo...</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
             
@@ -183,15 +213,16 @@
         </section>
     </body>
 
-<script src="../js/sidebar.js"></script>
+<script src="../../js/sidebar.js"></script>
 <script type="module">
-    import { getHorarioPorGrupo } from '../bd/horarios.js';
-    import { getGrupoPorId } from '../bd/grupos.js';
+    import { getHorarioPorGrupo } from '../../bd/horarios.js';
+    import { getGrupoPorId } from '../../bd/grupos.js';
+    import { getAulaPorId } from '../../bd/aulas.js';
     import { 
         registrarAsistencia,
         getAsistenciasPorGrupoYFecha
-    } from '../bd/asistencias.js';
-    import { checkAuth, checkJefeGrupoAuth, getCurrentUser, logout } from '../bd/auth.js';
+    } from '../../bd/asistencias.js';
+    import { checkAuth, checkJefeGrupoAuth, getCurrentUser, getUserById, logout } from '../../bd/auth.js';
     
     // Referencias a elementos DOM
     const welcomeMessage = document.getElementById('welcome-message');
@@ -219,27 +250,29 @@
     async function cargarInformacionJefe() {
         try {
             // Usar la función específica para jefes de grupo
-            currentUser = checkJefeGrupoAuth();
+            currentUser = getCurrentUser();
+            console.log("Usuario Actual:", currentUser);
             
             if (!currentUser) {
                 return; // La función ya redirige si no tiene permiso
             }
             
             // Obtener el grupo asociado al jefe de grupo (esto dependerá de tu modelo de datos)
-            grupoId = currentUser.grupoId;
+            grupoId = await getUserById(currentUser.docId);
+            console.log("Grupo actual ID:", grupoId.grupoId);
             
             if (!grupoId) {
                 alert('No tienes un grupo asignado. Contacta al administrador.');
                 return;
             }
             
-            welcomeMessage.textContent = `Bienvenido ${currentUser.name || currentUser.displayName || currentUser.email}`;
-            
             // Actualizar información del grupo
-            const grupo = await getGrupoPorId(grupoId);
+            const grupo = await getGrupoPorId(grupoId.grupoId);
+            const aula = await getAulaPorId(grupo.aulaId);
+            console.log("Grupo actual numero:", grupo.numeroGrupo, "Y Aula actual numero:", aula.nombre);
             if (grupo) {
                 numeroGrupo.textContent = grupo.numeroGrupo || grupo.nombre || "Grupo";
-                grupoHeader.textContent = `HORARIO: ${grupo.numeroGrupo || grupo.nombre} - ${grupo.carrera || ''} - AULA: ${grupo.aula || 'N/A'}`;
+                grupoHeader.textContent = `HORARIO: ${grupo.numeroGrupo || grupo.nombre} - ${grupo.carrera || ''} - AULA: ${aula.nombre || 'N/A'}`;
                 
                 // Cargar horario del grupo
                 await cargarHorario();
@@ -262,7 +295,7 @@
             tbody.innerHTML = '<tr><td colspan="4" class="loading">Cargando horario del grupo...</td></tr>';
             
             // Obtener horarios
-            horarioGrupo = await getHorarioPorGrupo(grupoId);
+            horarioGrupo = await getHorarioPorGrupo(grupoId.grupoId);
             console.log("Horarios obtenidos:", horarioGrupo);
             
             // Limpiar tabla y selector de horas
@@ -415,7 +448,7 @@
             e.preventDefault();
             try {
                 await logout();
-                window.location.href = '../index.html';
+                window.location.href = '../../index.html';
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
             }

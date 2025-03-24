@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Gestión de Grupos</title>
     </head>
@@ -12,7 +12,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <span class="nav__logo-text">Admin</span>
                     </a>
     
@@ -21,15 +21,23 @@
                     </div>
     
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link">
+                        <a href="menuAdmin.html" class="nav__link active">
                             <i class='bx bx-grid-alt nav__icon'></i>
                             <span class="nav__text">Menu</span>
                         </a>
                         <a href="horarioAdmin.html" class="nav__link">
                             <i class='bx bx-calendar-star nav__icon'></i>
-                            <span class="nav__text">Horario</span>
+                            <span class="nav__text">Horarios</span>
                         </a>
-                        <a href="gruposAdmin.html" class="nav__link active">
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
+                        </a>
+                        <a href="ReporteAsistencias.html" class="nav__link">
+                            <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
+                            <span class="nav__text">Reportes</span>
+                        </a>
+                        <a href="gruposAdmin.html" class="nav__link">
                             <i class='bx bx-buildings nav__icon'></i>
                             <span class="nav__text">Grupos</span>
                         </a>
@@ -45,10 +53,18 @@
                         <a href="temariosAdmin.html" class="nav__link">
                             <i class='bx bx-bookmark nav__icon'></i>
                             <span class="nav__text">Temario</span>
-                        </a>              
+                        </a>
+                        <a href="asignarJefeGrupo.html" class="nav__link">
+                            <i class='bx bx-user-check nav__icon'></i>
+                            <span class="nav__text">Jefes de grupo</span>
+                        </a>
+                        <a href="asignarAlumnoGrupo.html" class="nav__link">
+                            <i class='bx bx-user-plus nav__icon'></i>
+                            <span class="nav__text">Alumnos</span>
+                        </a>
                     </ul>
                 </div>
-                <a href="../index.html" class="nav__link" id="logout">           
+                <a href="../../index.html" class="nav__link" id="logout">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
@@ -94,7 +110,7 @@
         <br><br>
     </body>
 
-<script src="../js/sidebar.js"></script>
+<script src="../../js/sidebar.js"></script>
 <script type="module">
     import { 
         getGrupos, 
@@ -106,8 +122,8 @@
         getEdificios, 
         crearEdificio, 
         eliminarEdificio 
-    } from '../bd/grupos.js';
-    import { checkAdminAuth, logout } from '../bd/auth.js';
+    } from '../../bd/grupos.js';
+    import { checkAdminAuth, logout } from '../../bd/auth.js';
     
     // Verificar autenticación
     checkAdminAuth();
@@ -127,7 +143,7 @@
             e.preventDefault();
             try {
                 await logout();
-                window.location.href = '../index.html';
+                window.location.href = '../../index.html';
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
             }

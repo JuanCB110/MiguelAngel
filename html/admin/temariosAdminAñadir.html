@@ -3,9 +3,9 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-        <title>Temario Administrador</title>
+        <title>Temario Administrador Añadir</title>
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/+esm"></script>
         <style>
             select {
@@ -27,6 +27,31 @@
                 padding: 8px;
                 font-size: 16px;
             }
+            .progress-container {
+                width: 100%;
+                height: 20px;
+                background-color: #f5f5f5;
+                border-radius: 10px;
+                margin: 10px 0;
+                overflow: hidden;
+            }
+            .progress-bar {
+                height: 100%;
+                background-color: #4CAF50;
+                width: 0%;
+                transition: width 0.3s ease;
+                text-align: center;
+                line-height: 20px;
+                color: white;
+                font-size: 12px;
+            }
+            .file-info {
+                margin-top: 10px;
+                padding: 8px;
+                background-color: #f9f9f9;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
             .loading-message {
                 text-align: center;
                 padding: 10px;
@@ -36,30 +61,6 @@
                 margin-bottom: 10px;
                 border: 1px solid #ddd;
             }
-            .preview-container {
-                margin-top: 20px;
-                padding: 15px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                background-color: #f9f9f9;
-                max-height: 300px;
-                overflow-y: auto;
-            }
-            .preview-container iframe {
-                width: 100%;
-                height: 500px;
-                border: none;
-            }
-            .preview-container img {
-                max-width: 100%;
-                display: block;
-                margin: 0 auto;
-            }
-            #archivo-actual {
-                margin-top: 10px;
-                font-style: italic;
-                color: #666;
-            }
         </style>
     </head>
     <body id="body">
@@ -67,7 +68,7 @@
             <nav class="nav">
                 <div>
                     <a href="#" class="nav__logo">
-                        <img src="../assets/star.svg" alt="" class="nav__logo-icon">
+                        <img src="../../assets/star.svg" alt="" class="nav__logo-icon">
                         <span class="nav__logo-text">Admin</span>
                     </a>
     
@@ -76,13 +77,21 @@
                     </div>
     
                     <ul class="nav__list">
-                        <a href="menuAdmin.html" class="nav__link">
+                        <a href="menuAdmin.html" class="nav__link active">
                             <i class='bx bx-grid-alt nav__icon'></i>
                             <span class="nav__text">Menu</span>
                         </a>
                         <a href="horarioAdmin.html" class="nav__link">
                             <i class='bx bx-calendar-star nav__icon'></i>
-                            <span class="nav__text">Horario</span>
+                            <span class="nav__text">Horarios</span>
+                        </a>
+                        <a href="ChecadorHorario.html" class="nav__link">
+                            <i class='bx bx-check-square nav__icon'></i>
+                            <span class="nav__text">Asistencias</span>
+                        </a>
+                        <a href="ReporteAsistencias.html" class="nav__link">
+                            <i class='bx bx-bar-chart-alt-2 nav__icon'></i>
+                            <span class="nav__text">Reportes</span>
                         </a>
                         <a href="gruposAdmin.html" class="nav__link">
                             <i class='bx bx-buildings nav__icon'></i>
@@ -97,13 +106,21 @@
                             <span class="nav__text">Materia</span>
                         </a>
                         
-                        <a href="temariosAdmin.html" class="nav__link active">
+                        <a href="temariosAdmin.html" class="nav__link">
                             <i class='bx bx-bookmark nav__icon'></i>
                             <span class="nav__text">Temario</span>
-                        </a>              
+                        </a>
+                        <a href="asignarJefeGrupo.html" class="nav__link">
+                            <i class='bx bx-user-check nav__icon'></i>
+                            <span class="nav__text">Jefes de grupo</span>
+                        </a>
+                        <a href="asignarAlumnoGrupo.html" class="nav__link">
+                            <i class='bx bx-user-plus nav__icon'></i>
+                            <span class="nav__text">Alumnos</span>
+                        </a>
                     </ul>
                 </div>
-                <a href="../index.html" class="nav__link" id="logout-link">           
+                <a href="../../index.html" class="nav__link" id="logout-link">           
                     <i class='bx bx-log-out-circle nav__icon'></i>
                     <span class="nav__text">Salir</span>
                 </a>
@@ -112,10 +129,10 @@
 
         <section>
             <div class="barra-opciones">
-                <a href="#" class="activo">Editar</a>
-                <a href="temariosAdminAñadir.html">Agregar</a>
+                <a href="temariosAdmin.html">Editar</a>
+                <a href="#" class="activo">Agregar</a>
             </div>
-            <div class="form-usuarios" id="temario-form">
+            <form class="form-usuarios" id="temario-form">
                 <h1>Seleccione el semestre al que pertenece la materia</h1>
                 <select name="semestre" id="semestre-select">
                     <option value="1">1er semestre</option>
@@ -128,56 +145,51 @@
                     <option value="8">8vo semestre</option>
                     <option value="9">9no semestre</option>
                 </select>
-                <h1>Seleccione la materia a la que quiera ver o editar el temario</h1>
+                <h1>Seleccione la materia y cargue el temario</h1>
                 <select name="materia" id="materia-select">
                     <option value="">Cargando materias...</option>
                 </select>
                 
-                <div id="archivo-actual"></div>
+                <div id="file-info" class="file-info" style="display: none;"></div>
                 
                 <input type="file" name="archivo" id="archivo-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png">
                 
-                <div id="preview-container" class="preview-container" style="display: none;">
-                    <!-- Aquí se mostrará la vista previa del temario -->
+                <div id="progress-container" class="progress-container" style="display: none;">
+                    <div id="progress-bar" class="progress-bar">0%</div>
                 </div>
                 
                 <div class="busqueda" style="flex-direction: row-reverse;">
-                    <button class="boton-global" id="btn-ver">Ver</button>
-                    <button class="boton-global" id="btn-actualizar">Actualizar</button>
-                    <button class="boton-global-rojo" id="btn-eliminar">Eliminar</button>
+                    <button type="submit" class="boton-global" id="btn-guardar">Guardar</button>
+                    <button type="button" class="boton-global-rojo" id="btn-cancelar">Cancelar</button>
                 </div>
-            </div>
+            </form>
         </section>
     </body>
 
-<script src="../js/sidebar.js"></script>
-<script src="../js/barraOpciones.js"></script>
+<script src="../../js/barraOpciones.js"></script>
+<script src="../../js/sidebar.js"></script>
 <script type="module">
-    import { getMaterias } from '../bd/materias.js';
-    import { checkAdminAuth, logout } from '../bd/auth.js';
-    import { 
-        getTemarioPorMateriaId, 
-        actualizarTemario, 
-        eliminarTemario 
-    } from '../bd/temarios.js';
+    import { getMaterias } from '../../bd/materias.js';
+    import { checkAdminAuth, logout } from '../../bd/auth.js';
+    import { subirTemario, getTemarioPorMateriaId } from '../../bd/temarios.js';
     
     // Verificar autenticación
     checkAdminAuth();
     
     // Referencias a elementos del DOM
+    const form = document.getElementById('temario-form');
     const semestreSelect = document.getElementById('semestre-select');
     const materiaSelect = document.getElementById('materia-select');
     const archivoInput = document.getElementById('archivo-input');
-    const archivoActual = document.getElementById('archivo-actual');
-    const previewContainer = document.getElementById('preview-container');
-    const btnVer = document.getElementById('btn-ver');
-    const btnActualizar = document.getElementById('btn-actualizar');
-    const btnEliminar = document.getElementById('btn-eliminar');
+    const fileInfo = document.getElementById('file-info');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const btnGuardar = document.getElementById('btn-guardar');
+    const btnCancelar = document.getElementById('btn-cancelar');
     const logoutLink = document.getElementById('logout-link');
     
-    // Variables para almacenar datos
+    // Almacenamiento de datos
     let materias = [];
-    let temarioActual = null;
     let archivoSeleccionado = null;
     
     // Cargar materias según el semestre seleccionado
@@ -188,6 +200,7 @@
             
             // Obtener todas las materias
             materias = await getMaterias();
+            console.log("Materias cargadas:", materias.length);
             
             // Filtrar por semestre
             const materiasFiltradas = materias.filter(materia => 
@@ -208,69 +221,43 @@
         } catch (error) {
             console.error('Error al cargar materias:', error);
             materiaSelect.innerHTML = '<option value="">Error al cargar materias</option>';
+            alert('Error al cargar materias: ' + error.message);
         }
     }
     
-    // Cargar temario de la materia seleccionada
-    async function cargarTemario() {
+    // Verificar si la materia ya tiene temario
+    async function verificarTemarioExistente() {
         try {
             const materiaId = materiaSelect.value;
             
             if (!materiaId) {
-                archivoActual.textContent = '';
-                previewContainer.style.display = 'none';
-                btnVer.disabled = true;
-                btnEliminar.disabled = true;
+                fileInfo.style.display = 'none';
                 return;
             }
             
-            archivoActual.textContent = 'Cargando temario...';
-            previewContainer.style.display = 'none';
+            const temarioExistente = await getTemarioPorMateriaId(materiaId);
             
-            temarioActual = await getTemarioPorMateriaId(materiaId);
-            
-            if (temarioActual && temarioActual.url) {
-                archivoActual.textContent = `Temario actual: ${temarioActual.nombre || 'Archivo sin nombre'} (guardado en ${temarioActual.storageProvider || 'supabase'})`;
-                btnVer.disabled = false;
-                btnEliminar.disabled = false;
+            if (temarioExistente) {
+                fileInfo.style.display = 'block';
+                fileInfo.innerHTML = `
+                    <p><strong>Atención:</strong> Esta materia ya tiene un temario asignado en ${temarioExistente.storageProvider || 'supabase'}.</p>
+                    <p>Si sube un nuevo archivo, se reemplazará el temario existente.</p>
+                `;
             } else {
-                archivoActual.textContent = 'No hay temario cargado para esta materia';
-                btnVer.disabled = true;
-                btnEliminar.disabled = true;
+                fileInfo.style.display = 'none';
             }
         } catch (error) {
-            console.error('Error al cargar temario:', error);
-            archivoActual.textContent = 'Error al cargar el temario';
-            btnVer.disabled = true;
-            btnEliminar.disabled = true;
+            console.error('Error al verificar temario existente:', error);
         }
     }
     
-    // Mostrar vista previa del temario
-    function mostrarVistaPrevia() {
-        if (!temarioActual || !temarioActual.url) {
-            alert('No hay temario disponible para mostrar');
-            return;
-        }
+    // Manejar la subida de temario
+    async function subirTemarioArchivo(e) {
+        e.preventDefault();
         
-        previewContainer.style.display = 'block';
-        
-        const url = temarioActual.url;
-        const extension = url.split('.').pop().toLowerCase();
-        
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
-            previewContainer.innerHTML = `<img src="${url}" alt="Vista previa del temario">`;
-        } else if (extension === 'pdf') {
-            previewContainer.innerHTML = `<iframe src="${url}"></iframe>`;
-        } else {
-            previewContainer.innerHTML = `<p>No se puede mostrar una vista previa para este tipo de archivo. <a href="${url}" target="_blank">Haga clic aquí para descargarlo</a></p>`;
-        }
-    }
-    
-    // Actualizar el temario
-    async function actualizarTemarioArchivo() {
         try {
             const materiaId = materiaSelect.value;
+            
             if (!materiaId) {
                 alert('Por favor seleccione una materia');
                 return;
@@ -287,106 +274,100 @@
                 return;
             }
             
-            // Preparar datos del temario
-            btnActualizar.textContent = 'Actualizando...';
-            btnActualizar.disabled = true;
+            // Deshabilitar botón y mostrar progreso
+            btnGuardar.disabled = true;
+            btnGuardar.textContent = 'Subiendo...';
+            progressContainer.style.display = 'block';
             
-            await actualizarTemario(materiaId, archivoSeleccionado, materia.nombre);
+            // Subir archivo con seguimiento de progreso
+            await subirTemario(
+                materiaId,
+                archivoSeleccionado,
+                materia.nombre,
+                (progress) => {
+                    const percentage = Math.round(progress * 100);
+                    progressBar.style.width = `${percentage}%`;
+                    progressBar.textContent = `${percentage}%`;
+                }
+            );
             
-            alert('Temario actualizado correctamente');
-            await cargarTemario();
+            // Éxito
+            alert('Temario subido correctamente a Supabase');
             
-            // Limpiar selección de archivo
+            // Limpiar formulario
             archivoInput.value = '';
+            fileInfo.style.display = 'none';
+            progressContainer.style.display = 'none';
             archivoSeleccionado = null;
             
+            // Redireccionar a la página de edición
+            window.location.href = 'temariosAdmin.html';
+            
         } catch (error) {
-            console.error('Error al actualizar temario:', error);
-            alert('Error al actualizar el temario: ' + error.message);
-        } finally {
-            btnActualizar.textContent = 'Actualizar';
-            btnActualizar.disabled = false;
+            console.error('Error al subir temario:', error);
+            alert('Error al subir el temario: ' + error.message);
+            
+            // Restaurar botón
+            btnGuardar.disabled = false;
+            btnGuardar.textContent = 'Guardar';
+            progressContainer.style.display = 'none';
         }
     }
     
-    // Eliminar el temario
-    async function eliminarTemarioArchivo() {
-        try {
-            const materiaId = materiaSelect.value;
-            
-            if (!materiaId || !temarioActual) {
-                alert('No hay temario para eliminar');
-                return;
-            }
-            
-            if (!confirm('¿Está seguro de que desea eliminar este temario? Esta acción no se puede deshacer.')) {
-                return;
-            }
-            
-            btnEliminar.textContent = 'Eliminando...';
-            btnEliminar.disabled = true;
-            
-            await eliminarTemario(materiaId);
-            
-            alert('Temario eliminado correctamente');
-            previewContainer.style.display = 'none';
-            archivoActual.textContent = 'No hay temario cargado para esta materia';
-            temarioActual = null;
-            
-            btnVer.disabled = true;
-            btnEliminar.disabled = true;
-            
-        } catch (error) {
-            console.error('Error al eliminar temario:', error);
-            alert('Error al eliminar el temario: ' + error.message);
-        } finally {
-            btnEliminar.textContent = 'Eliminar';
-            btnEliminar.disabled = false;
-        }
+    // Cancelar la subida
+    function cancelarSubida() {
+        archivoInput.value = '';
+        archivoSeleccionado = null;
+        fileInfo.style.display = 'none';
+        progressContainer.style.display = 'none';
+        
+        // Volver a la página anterior
+        window.location.href = 'temariosAdmin.html';
     }
     
     // Evento para cambio de semestre
     semestreSelect.addEventListener('change', cargarMaterias);
     
     // Evento para cambio de materia
-    materiaSelect.addEventListener('change', cargarTemario);
+    materiaSelect.addEventListener('change', verificarTemarioExistente);
     
     // Evento para selección de archivo
     archivoInput.addEventListener('change', (e) => {
         archivoSeleccionado = e.target.files[0];
+        
         if (archivoSeleccionado) {
             const fileName = archivoSeleccionado.name;
-            archivoActual.textContent = `Archivo seleccionado: ${fileName}`;
+            const fileSize = (archivoSeleccionado.size / 1024 / 1024).toFixed(2); // en MB
+            
+            fileInfo.style.display = 'block';
+            fileInfo.innerHTML = `
+                <p><strong>Archivo seleccionado:</strong> ${fileName}</p>
+                <p><strong>Tamaño:</strong> ${fileSize} MB</p>
+                <p><strong>Almacenamiento:</strong> Supabase</p>
+            `;
         } else {
-            archivoActual.textContent = 'No se ha seleccionado ningún archivo';
+            fileInfo.style.display = 'none';
         }
     });
     
-    // Evento para ver temario
-    btnVer.addEventListener('click', mostrarVistaPrevia);
+    // Evento para subir temario
+    form.addEventListener('submit', subirTemarioArchivo);
     
-    // Evento para actualizar temario
-    btnActualizar.addEventListener('click', actualizarTemarioArchivo);
-    
-    // Evento para eliminar temario
-    btnEliminar.addEventListener('click', eliminarTemarioArchivo);
+    // Evento para cancelar
+    btnCancelar.addEventListener('click', cancelarSubida);
     
     // Evento para cierre de sesión
     logoutLink.addEventListener('click', async (e) => {
         e.preventDefault();
         try {
             await logout();
-            window.location.href = '../index.html';
+            window.location.href = '../../index.html';
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
         }
     });
     
     // Inicializar
-    document.addEventListener('DOMContentLoaded', () => {
-        cargarMaterias();
-        btnVer.disabled = true;
-        btnEliminar.disabled = true;
-    });
+    document.addEventListener('DOMContentLoaded', cargarMaterias);
 </script>
 </html>

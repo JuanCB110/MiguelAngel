@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/principal.css">
+        <link rel="stylesheet" href="../../css/principal.css">
         <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
         <title>Horario Maestro</title>
     </head>
@@ -92,13 +92,13 @@
         </section>
     </body>
 
-<script src="../js/sidebar.js"></script>
+<script src="../../js/sidebar.js"></script>
 <script type="module">
-    import { getHorariosByMaestroId, getMateriaById } from '../bd/horarios.js';
-    import { getMaestros } from '../bd/maestros.js';
-    import { getAsistenciasByMaestroId, registrarAsistencia } from '../bd/asistencias.js';
-    import { checkAuth, getCurrentUser, logout } from '../bd/auth.js';
-    import { getMaterias } from '../bd/materias.js';
+    import { getHorariosByMaestroId, getMateriaById } from '../../bd/horarios.js';
+    import { getMaestros } from '../../bd/maestros.js';
+    import { getAsistenciasByMaestroId, registrarAsistencia } from '../../bd/asistencias.js';
+    import { checkAuth, getCurrentUser, logout } from '../../bd/auth.js';
+    import { getMaterias } from '../../bd/materias.js';
     
     // Verificar autenticación
     const user = checkAuth();
